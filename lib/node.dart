@@ -15,11 +15,11 @@ part of 'trinity_scope.dart';
 //in case you need to find other nodes from inside the node.
 //Right now we're not going to let developers access the scope from the node.
 abstract class _Node {
-  late final TrinityScope _scope; //*
+  late final InheritedTrinityScope _scope; //*
   bool _initialized = false;
 
   // Llamado por NodeProvider al registrar
-  void _attach(TrinityScope scope) {
+  void _attach(InheritedTrinityScope scope) {
     assert(!_initialized, 'Node ya fue inicializado.');
     _scope = scope; //*
     for (final bridge in _bridges) {

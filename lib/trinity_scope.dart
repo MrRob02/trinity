@@ -39,14 +39,17 @@ class _NodeRegistry {
 // TrinityScope
 // ─────────────────────────────────────────────
 
-class TrinityScope extends InheritedWidget {
+class InheritedTrinityScope extends InheritedWidget {
   final _NodeRegistry _registry;
 
-  const TrinityScope._({required _NodeRegistry registry, required super.child})
-    : _registry = registry;
+  const InheritedTrinityScope._({
+    required _NodeRegistry registry,
+    required super.child,
+  }) : _registry = registry;
 
-  static TrinityScope of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<TrinityScope>();
+  static InheritedTrinityScope of(BuildContext context) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<InheritedTrinityScope>();
     assert(scope != null, 'No se encontró ningún TrinityScope en el árbol.');
     return scope!;
   }
@@ -66,11 +69,11 @@ class TrinityScope extends InheritedWidget {
     );
   }
 
-  TrinityScope? _findParentScope(BuildContext context) {
-    TrinityScope? result;
+  InheritedTrinityScope? _findParentScope(BuildContext context) {
+    InheritedTrinityScope? result;
     context.visitAncestorElements((element) {
       final widget = element.widget;
-      if (widget is TrinityScope && widget != this) {
+      if (widget is InheritedTrinityScope && widget != this) {
         result = widget;
         return false; // detiene la búsqueda
       }
@@ -80,7 +83,7 @@ class TrinityScope extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(TrinityScope old) => false;
+  bool updateShouldNotify(InheritedTrinityScope old) => false;
 
   // Dentro de TrinityScope
   N findByType<N extends NodeInterface>() {
@@ -100,15 +103,15 @@ class TrinityScope extends InheritedWidget {
 // Widget público que crea el scope
 // ─────────────────────────────────────────────
 
-class TrinityScopeWidget extends StatefulWidget {
+class TrinityScope extends StatefulWidget {
   final Widget child;
-  const TrinityScopeWidget({super.key, required this.child});
+  const TrinityScope({super.key, required this.child});
 
   @override
-  State<TrinityScopeWidget> createState() => _TrinityScopeWidgetState();
+  State<TrinityScope> createState() => _TrinityScopeState();
 }
 
-class _TrinityScopeWidgetState extends State<TrinityScopeWidget> {
+class _TrinityScopeState extends State<TrinityScope> {
   final _NodeRegistry _registry = _NodeRegistry();
 
   @override
@@ -119,7 +122,7 @@ class _TrinityScopeWidgetState extends State<TrinityScopeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return TrinityScope._(registry: _registry, child: widget.child);
+    return InheritedTrinityScope._(registry: _registry, child: widget.child);
   }
 }
 
@@ -170,7 +173,7 @@ class _NodeProviderState<N extends NodeInterface>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_registry == null) {
-      final scope = TrinityScope.of(context);
+      final scope = InheritedTrinityScope.of(context);
       _registry = scope._registry;
       for (final node in _nodes) {
         node._attach(scope); // ← inyecta el scope
@@ -201,5 +204,6 @@ class _NodeProviderState<N extends NodeInterface>
 // ─────────────────────────────────────────────
 
 extension TrinityContextExtension on BuildContext {
-  N findNode<N extends NodeInterface>() => TrinityScope.of(this).find<N>(this);
+  N findNode<N extends NodeInterface>() =>
+      InheritedTrinityScope.of(this).find<N>(this);
 }

@@ -6,7 +6,7 @@ import 'package:trinity/trinity_scope.dart';
 abstract class BaseBridgeSignal<V> extends Signal<V?> {
   BaseBridgeSignal(super.value);
 
-  void connect(TrinityScope scope);
+  void connect(InheritedTrinityScope scope);
 }
 
 ///[N] is the refrence node where we'll search the reference signal.
@@ -56,7 +56,7 @@ class BridgeSignal<N extends NodeInterface, S, V> extends BaseBridgeSignal<V> {
   set value(V? newValue) => _update(_parentNode, newValue);
   @override
   @protected
-  void connect(TrinityScope scope) {
+  void connect(InheritedTrinityScope scope) {
     final node = _parentNode = scope.findByType<N>();
     final parentSignal = select(node);
     final initialValue = transform(parentSignal.value);
