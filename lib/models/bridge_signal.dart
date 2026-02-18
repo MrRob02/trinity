@@ -63,12 +63,11 @@ class BridgeSignal<N extends NodeInterface, S, V> extends BaseBridgeSignal<V> {
     final initialValue = transform(parentSignal.value);
 
     _signal = Signal<V?>(initialValue);
-    emit(initialValue);
+    _signal.value = initialValue;
 
     _subscription = parentSignal.streamTriggerImmediatly.listen((data) {
       final transformed = transform(data);
-      _signal.emit(transformed);
-      emit(transformed);
+      _signal.value = transformed;
     });
   }
 

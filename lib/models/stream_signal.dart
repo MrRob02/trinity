@@ -17,12 +17,6 @@ class StreamSignal<T> extends Signal<AsyncValue<T>> {
     );
   }
 
-  @override
-  @protected
-  void emit(AsyncValue<T> newValue) {
-    _emit(newValue);
-  }
-
   void _emit(AsyncValue<T> newValue) {
     _value = newValue;
     _controller.add(newValue);

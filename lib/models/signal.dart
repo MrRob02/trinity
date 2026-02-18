@@ -60,12 +60,7 @@ class Signal<T> extends BaseSignal<T> {
   /// It is created by the Signal constructor and is used to access the signal's value and stream.
   late final ReadableSignal<T> readable = ReadableSignal._(this);
 
-  @protected
-  set value(T newValue) => emit(newValue);
-
-  ///A function that emits a new value to the signal.
-  ///It also checks if the new value is different from the current value before emitting.
-  void emit(T newValue) {
+  set value(T newValue) {
     if (_value == newValue) return; // Small optional optimization
     _value = newValue;
     _controller.add(newValue);

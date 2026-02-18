@@ -92,9 +92,9 @@ abstract class NodeInterface extends _Node {
   }) async {
     if (invokeLoading) {
       if (fullScreen) {
-        _fullScreenLoading.emit(true);
+        _fullScreenLoading.value = true;
       } else {
-        _isLoading.emit(true);
+        _isLoading.value = true;
       }
     }
     try {
@@ -105,9 +105,9 @@ abstract class NodeInterface extends _Node {
     } finally {
       if (invokeLoading) {
         if (fullScreen) {
-          _fullScreenLoading.emit(false);
+          _fullScreenLoading.value = false;
         } else {
-          _isLoading.emit(false);
+          _isLoading.value = false;
         }
       }
     }
