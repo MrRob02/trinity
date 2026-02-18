@@ -205,7 +205,7 @@ The `DetailNode` connects to `OrdersNode`. It "selects" the list of orders, "tra
 
 ```dart
 class OrdersNode extends NodeInterface {
-  final _orders = Signal<List<OrderModel>>([]);
+  late final _orders = registerSignal(Signal<List<OrderModel>>([]));
   ReadableSignal<List<OrderModel>> get orders => _orders.readable;
 
   // Method to update a single order in the list
@@ -246,7 +246,8 @@ class DetailNode extends NodeInterface {
       },
     ),
   );
-
+  // And just like that, you have a ReadableSignal that works
+  //exactly like a normal signal, but it's connected to the parent node
   ReadableSignal<OrderModel?> get order => _orderBridge.readableSignal;
 
   DetailNode(this.orderId);
