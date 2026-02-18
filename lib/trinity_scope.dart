@@ -20,9 +20,9 @@ class _NodeRegistry {
     node.onInit();
   }
 
-  void unregister<N extends _Node>() {
-    final node = _nodes.remove(N);
-    node?._dispose();
+  void unregister(_Node node) {
+    _nodes.remove(node.runtimeType);
+    node._dispose();
   }
 
   N? get<N extends _Node>() => _nodes[N] as N?;
@@ -128,20 +128,28 @@ class _TrinityScopeWidgetState extends State<TrinityScopeWidget> {
 // ─────────────────────────────────────────────
 
 class NodeProvider<N extends NodeInterface> extends StatefulWidget {
-  final N Function() create;
+  final List<N Function()> nodes;
   final Widget? child;
   final Widget Function(BuildContext context, N node)? builder;
 
   ///Use this widget to create a node and provide it to the widget tree,
   ///you can use [NodeProvider.builder] if you need to build the widget tree
   ///and access directly to the node.
-  const NodeProvider({super.key, required this.create, required this.child})
-    : builder = null;
-  const NodeProvider.builder({
+  NodeProvider({super.key, required N Function() create, required this.child})
+    : builder = null,
+      nodes = [create];
+  const NodeProvider.multiple({
     super.key,
-    required this.create,
+    required this.nodes,
+    required this.child,
+  }) : builder = null;
+
+  NodeProvider.builder({
+    super.key,
+    required N Function() create,
     required this.builder,
-  }) : child = null;
+  }) : child = null,
+       nodes = [create];
 
   @override
   State<NodeProvider<N>> createState() => _NodeProviderState<N>();
@@ -149,13 +157,13 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
 
 class _NodeProviderState<N extends NodeInterface>
     extends State<NodeProvider<N>> {
-  late final N _node;
+  late final List<N> _nodes;
   _NodeRegistry? _registry;
 
   @override
   void initState() {
     super.initState();
-    _node = widget.create();
+    _nodes = widget.nodes.map((e) => e()).toList();
   }
 
   @override
@@ -164,23 +172,28 @@ class _NodeProviderState<N extends NodeInterface>
     if (_registry == null) {
       final scope = TrinityScope.of(context);
       _registry = scope._registry;
-      _node._attach(scope); // ← inyecta el scope
-      _registry!.register<N>(_node); // ← llama onInit internamente
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _node.onReady(); // ← después del primer frame
-      });
+      for (final node in _nodes) {
+        node._attach(scope); // ← inyecta el scope
+        _registry!.register(node); // ← llama onInit internamente
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          node.onReady(); // ← después del primer frame
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    _registry?.unregister<N>(); // ← llama onDispose internamente
+    for (final node in _nodes) {
+      _registry?.unregister(node); // ← llama onDispose internamente
+    }
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) =>
-      widget.builder != null ? widget.builder!(context, _node) : widget.child!;
+  Widget build(BuildContext context) => widget.builder != null
+      ? widget.builder!(context, _nodes.first)
+      : widget.child!;
 }
 
 // ─────────────────────────────────────────────
