@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:trinity/models/bridge_signal.dart';
 import 'package:trinity/models/signal.dart';
@@ -20,7 +22,7 @@ class _NodeRegistry {
 
   void unregister<N extends _Node>() {
     final node = _nodes.remove(N);
-    node?.onDispose();
+    node?._dispose();
   }
 
   N? get<N extends _Node>() => _nodes[N] as N?;

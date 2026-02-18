@@ -15,13 +15,13 @@ part of 'trinity_scope.dart';
 //in case you need to find other nodes from inside the node.
 //Right now we're not going to let developers access the scope from the node.
 abstract class _Node {
-  // late final TrinityScope _scope; //*
+  late final TrinityScope _scope; //*
   bool _initialized = false;
 
   // Llamado por NodeProvider al registrar
   void _attach(TrinityScope scope) {
     assert(!_initialized, 'Node ya fue inicializado.');
-    // _scope = scope; //*
+    _scope = scope; //*
     for (final bridge in _bridges) {
       bridge.connect(scope); // busca el Node B y se suscribe
     }
@@ -36,14 +36,33 @@ abstract class _Node {
   // }
 
   final List<BaseBridgeSignal> _bridges = [];
-  @protected
-  void registerBridge(BaseBridgeSignal bridge) {
-    _bridges.add(bridge);
-  }
+  final List<BaseSignal> _signals = [];
 
   @protected
   void registerManyBridges(List<BaseBridgeSignal> bridges) {
     _bridges.addAll(bridges);
+    if (_initialized) {
+      for (final bridge in bridges) {
+        bridge.connect(_scope);
+      }
+    }
+  }
+
+  @protected
+  S registerSignal<S extends BaseSignal>(S signal) {
+    if (signal is BaseBridgeSignal) {
+      _bridges.add(signal);
+      if (_initialized) {
+        signal.connect(_scope);
+      }
+    }
+    _signals.add(signal);
+    return signal;
+  }
+
+  ///We use this to improve optimization
+  bool isSignalRegistered(BaseSignal signal) {
+    return _signals.contains(signal);
   }
 
   // ── Ciclo de vida ──────────────────────────
@@ -57,6 +76,18 @@ abstract class _Node {
 
   /// Cuando el NodeProvider se desmonta
   void onDispose() {}
+
+  /// Método interno llamado por el framework para limpiar recursos
+  void _dispose() {
+    for (final bridge in _bridges) {
+      bridge.dispose();
+    }
+    for (final signal in _signals) {
+      signal.dispose();
+    }
+    onDispose();
+    log('$runtimeType and signals disposed');
+  }
 }
 
 ///You can use this class to add loading and error states to your nodes
@@ -78,9 +109,9 @@ abstract class _Node {
 ///  })
 ///```
 abstract class NodeInterface extends _Node {
-  final _isLoading = Signal<bool>(false);
-  final _fullScreenLoading = Signal<bool>(false);
-  final _error = NullableSignal<Object>();
+  late final _isLoading = registerSignal(Signal<bool>(false));
+  late final _fullScreenLoading = registerSignal(Signal<bool>(false));
+  late final _error = registerSignal(NullableSignal<Object>());
   ReadableSignal<bool> get isLoading => _isLoading.readable;
   ReadableSignal<bool> get fullScreenLoading => _fullScreenLoading.readable;
   ReadableSignal<Object?> get error => _error.readable;

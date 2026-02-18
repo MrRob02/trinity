@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:trinity/models/signal.dart';
 import 'package:trinity/trinity_scope.dart';
@@ -47,6 +46,26 @@ class _SignalBuilderState<N extends NodeInterface, S>
   @override
   Widget build(BuildContext context) {
     final node = context.findNode<N>();
-    return widget.builder(context, widget.signal(node).value);
+    final signal = widget.signal(node);
+    assert(node.isSignalRegistered(signal.source), '''
+      Signal is not registered
+
+      This might be because you created the signals directly instead of using [registerSignal]
+
+      You might have something like:
+
+      class MyNode extends NodeInterface {
+        final mySignal = Signal<String>();
+      }
+
+      Instead of:
+
+      class MyNode extends NodeInterface {
+        late final mySignal = registerSignal(Signal<String>());
+      }
+
+      In order to fix this, you need to use [registerSignal] to register your signals.
+''');
+    return widget.builder(context, signal.value);
   }
 }

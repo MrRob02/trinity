@@ -34,6 +34,9 @@ abstract class BaseSignal<T> {
 class ReadableSignal<T> {
   final BaseSignal<T> _source;
 
+  @protected
+  BaseSignal<T> get source => _source;
+
   // Private constructor: Only a Signal can create its Readable counterpart.
   ReadableSignal._(this._source);
 
@@ -60,7 +63,9 @@ class Signal<T> extends BaseSignal<T> {
   /// It is created by the Signal constructor and is used to access the signal's value and stream.
   late final ReadableSignal<T> readable = ReadableSignal._(this);
 
-  set value(T newValue) {
+  set value(T newValue) => emit(newValue);
+
+  void emit(T newValue) {
     if (_value == newValue) return; // Small optional optimization
     _value = newValue;
     _controller.add(newValue);

@@ -23,7 +23,6 @@ abstract class BaseBridgeSignal<V> extends Signal<V?> {
 class BridgeSignal<N extends NodeInterface, S, V> extends BaseBridgeSignal<V> {
   StreamSubscription<S>? _subscription;
   late final N _parentNode;
-  late final Signal<V?> _signal;
 
   ///[select] is a function that will select the reference signal from the node.
   final ReadableSignal<S> Function(N node) select;
@@ -51,7 +50,7 @@ class BridgeSignal<N extends NodeInterface, S, V> extends BaseBridgeSignal<V> {
   /// Available after [connect] has been called.
   ///
   /// Use this to read the value of the bridge signal.
-  ReadableSignal<V?> get readableSignal => _signal.readable;
+  ReadableSignal<V?> get readableSignal => readable;
 
   @override
   set value(V? newValue) => _update(_parentNode, newValue);
@@ -62,19 +61,17 @@ class BridgeSignal<N extends NodeInterface, S, V> extends BaseBridgeSignal<V> {
     final parentSignal = select(node);
     final initialValue = transform(parentSignal.value);
 
-    _signal = Signal<V?>(initialValue);
-    _signal.value = initialValue;
+    emit(initialValue);
 
     _subscription = parentSignal.streamTriggerImmediatly.listen((data) {
       final transformed = transform(data);
-      _signal.value = transformed;
+      emit(transformed);
     });
   }
 
   @override
   void dispose() {
     _subscription?.cancel();
-    _signal.dispose();
     super.dispose();
   }
 }
