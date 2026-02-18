@@ -224,33 +224,32 @@ class OrdersNode extends NodeInterface {
 
 ```dart
 class DetailNode extends NodeInterface {
+  final int orderId;
+
   // 1. Define the Bridge
   // <TargetNode, SourceType, LocalType>
-  late final BridgeSignal<OrdersNode, List<OrderModel>, OrderModel?> _orderBridge;
-  
-  ReadableSignal<OrderModel?> get order => _orderBridge.readableSignal;
-
-  DetailNode(int orderId) {
-    _orderBridge = BridgeSignal(
+  late final _orderBridge = registerSignal(
+    BridgeSignal(
       // Select the signal from the parent
       select: (OrdersNode node) => node.orders,
-      
+
       // Transform: Find the specific order by ID
       transform: (List<OrderModel> orders) {
         return orders.firstWhereOrNull((o) => o.id == orderId);
       },
-      
+
       // Update: synchronize changes back to the parent
       update: (OrdersNode node, OrderModel? value) {
         if (value != null) {
           node.updateOrder(value);
         }
       },
-    );
-    
-    // 2. Register the bridge
-    registerBridge(_orderBridge);
-  }
+    ),
+  );
+
+  ReadableSignal<OrderModel?> get order => _orderBridge.readableSignal;
+
+  DetailNode(this.orderId);
 
   // Helper to update the order from the UI
   void changePrice(double newPrice) {
@@ -282,7 +281,7 @@ Trinity was born from the necessity to simplify code while ensuring robustness. 
 Trinity offers a balanced approach:
 
 - **Zero Boilerplate**: Forget about managing massive state objects or implementing `Equatable`. In Trinity, each property manages its own state independently. Controllers simply update specific values, and only the relevant components rebuild.
-- **Flutter-Native Robustness**: Utilizing `TrinityScope`, you can access any active node from anywhere in your app—whether navigating screens or opening dialogs. Nodes remain available while needed and are automatically cleaned up from memory when their scope is closed.
+- **Flutter-Native Robustness**: Utilizing `TrinityScope`, you can access any active node from anywhere in your app—whether navigating screens or opening dialogs. Nodes remain available while needed and are automatically cleaned up from memory when their master page is closed.
 - **Modular Controllers**: Say goodbye to "God Controllers." `TrinityScope` removes barriers between nodes, enabling secure cross-communication. You can use **Bridges** to derive local state from a parent node or access parent data directly without duplication (e.g., accessing `orders.length` from `OrdersNode` inside `OrderDetail`).
 - **Signals at the Core**: Signals act as state translators. Whether you have a mutable value, a stream, or a future, Trinity wraps it into a reactive Signal that manages the underlying complexity. No more manual stream creation—just wrap your data in a Signal and let Trinity handle the rest.
 - **Componentization First**: Trinity prioritizes efficient UI updates. The `SignalBuilder` listens exclusively to the specific Signal it requires. If the `orders` signal updates, your list rebuilds, but unrelated changes (like `isLoading`) won't trigger unnecessary repaints.
