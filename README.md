@@ -7,6 +7,8 @@ this README's contents appear on the landing page for your package.
 
 Trinity is a robust state management package for Flutter that implements a node-based architecture using reactive signals. It provides a structured way to separate business logic from UI code, ensuring modularity, testability, and efficient implementation of reactive patterns.
 
+# Documentation
+
 ## Features
 
 - **Node-Based Architecture**: Encapsulate logic and state within `Node` classes, promoting clean separation of concerns.
@@ -265,3 +267,22 @@ With this setup:
 - If `OrdersNode` updates the list (e.g., from a websocket), `DetailNode` updates automatically.
 - If `DetailNode` changes the price, `OrdersNode` receives the update and the list (and any other listeners) update automatically.
 
+# Why Trinity?
+
+Trinity was born from the necessity to simplify code while ensuring robustness. Drawing inspiration from the most popular state management solutions—Bloc, GetX, and Riverpod—Trinity aims to unify their strengths while mitigating their weaknesses.
+
+### The Landscape
+
+- **Bloc**: Celebrated for its robustness and adherence to good practices via the widget tree lifecycle. However, it suffers from excessive boilerplate (requiring repetitive variable definitions for constructors, `Equatable`, getters, and `copyWith`) and lacks native inter-bloc communication.
+- **GetX**: Loved for its flexibility and minimal file count. However, its heavy reliance on runtime checks makes it error-prone, and managing controllers outside the widget tree often leads to unmaintainable code and bad practices.
+- **Riverpod**: A strong middle ground with excellent dependency injection. However, its lifecycle management can be confusing (e.g., balancing caching with auto-dispose), and the architectural separation of data from controllers can complicate flow control.
+
+### The Trinity Solution
+
+Trinity offers a balanced approach:
+
+- **Zero Boilerplate**: Forget about managing massive state objects or implementing `Equatable`. In Trinity, each property manages its own state independently. Controllers simply update specific values, and only the relevant components rebuild.
+- **Flutter-Native Robustness**: Utilizing `TrinityScope`, you can access any active node from anywhere in your app—whether navigating screens or opening dialogs. Nodes remain available while needed and are automatically cleaned up from memory when their scope is closed.
+- **Modular Controllers**: Say goodbye to "God Controllers." `TrinityScope` removes barriers between nodes, enabling secure cross-communication. You can use **Bridges** to derive local state from a parent node or access parent data directly without duplication (e.g., accessing `orders.length` from `OrdersNode` inside `OrderDetail`).
+- **Signals at the Core**: Signals act as state translators. Whether you have a mutable value, a stream, or a future, Trinity wraps it into a reactive Signal that manages the underlying complexity. No more manual stream creation—just wrap your data in a Signal and let Trinity handle the rest.
+- **Componentization First**: Trinity prioritizes efficient UI updates. The `SignalBuilder` listens exclusively to the specific Signal it requires. If the `orders` signal updates, your list rebuilds, but unrelated changes (like `isLoading`) won't trigger unnecessary repaints.
