@@ -42,7 +42,7 @@ import 'package:trinity/trinity.dart';
 
 class CounterNode extends NodeInterface {
   // Private mutable signal
-  final _count = Signal<int>(0);
+  late final _count = registerSignal(Signal<int>(0));
 
   // Public read-only signal
   ReadableSignal<int> get count => _count.readable;
