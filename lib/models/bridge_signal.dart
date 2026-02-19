@@ -46,12 +46,6 @@ class BridgeSignal<N extends NodeInterface, S, V> extends BaseBridgeSignal<V> {
   }) : _update = update,
        super(null);
 
-  /// A non-nullable [Signal<V>] representation of this bridge.
-  /// Available after [connect] has been called.
-  ///
-  /// Use this to read the value of the bridge signal.
-  ReadableSignal<V?> get readableSignal => readable;
-
   @override
   set value(V? newValue) => _update(_parentNode, newValue);
   @override

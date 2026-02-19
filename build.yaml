@@ -1,0 +1,7 @@
+builders:
+  node_readable:
+    import: "package:trinity/src/generator/builder.dart"
+    builder_factories: ["nodeBuilder"]
+    build_extensions: {".dart": [".g.dart"]}
+    auto_apply: dependents
+    build_to: source

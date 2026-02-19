@@ -11,6 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
   rxdart: ^0.28.0
+  analyzer: ^10.0.1
+  build_runner: ^2.11.1
+  source_gen: ^4.2.0
+  build: ^4.0.4
 
 dev_dependencies:
   flutter_test:

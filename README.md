@@ -20,14 +20,14 @@ Trinity is a robust state management package for Flutter that implements a node-
 
 ## Getting started
 
-Wrap your application or a specific subtree with `TrinityScopeWidget` to initialize the scope required for node management.
+Wrap your application or a specific subtree with `TrinityScope` to initialize the scope required for node management.
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:trinity/trinity.dart';
 
 void main() {
-  runApp(TrinityScopeWidget(child: const MainApp()));
+  runApp(TrinityScope(child: const MainApp()));
 }
 ```
 
@@ -75,6 +75,11 @@ class MainApp extends StatelessWidget {
 }
 ```
 
+> **Note**: simpler usage `NodeProvider(create: () => MyNode(), child: ...)`
+> 
+> - Use `NodeProvider.many` to provide multiple nodes at once.
+> - Use `NodeProvider.builder` to access the node immediately in the `builder` callback.
+
 ### 3. Consume the Node
 
 Use `SignalBuilder` to listen to signal changes and rebuild your UI. The builder automatically finds the required node from the context.
@@ -113,6 +118,43 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+```
+
+### 4. Listening to Multiple Signals
+
+For cases where a widget needs to react to changes in multiple signals, use `SignalBuilderMany`.
+
+> **IMPORTANT**: This feature requires code generation using `build_runner`.
+> 
+> 1. Add `build_runner` to `dev_dependencies`.
+> 2. Add `part 'your_file.g.dart';` to your node file.
+> 3. Run `dart run build_runner build`.
+> 4. Mixin the generated class: `class OrdersNode extends NodeInterface<OrdersNodeReadable>`.
+
+```dart
+// orders_node.dart
+part 'orders_node.g.dart';
+
+class OrdersNode extends NodeInterface<OrdersNodeReadable> {
+  late final _orders = registerSignal(Signal<List<OrderModel>>([]));
+  late final _user = registerSignal(Signal<User>(User.empty()));
+  // ...
+}
+```
+
+```dart
+// home_page.dart
+SignalBuilderMany<OrdersNode, OrdersNodeReadable>(
+  signals: (node) => {node.orders, node.user},
+  builder: (context, reader) {
+    // reader is the generated class that exposes values directly
+    // This is type-safe and updates only when specific signals change
+    final orders = reader.orders;
+    final user = reader.user;
+    
+    return Text('User: ${user.name}, Orders: ${orders.length}');
+  },
+);
 ```
 
 ## Async Operations & Loading States
@@ -163,7 +205,6 @@ class DataNode extends NodeInterface {
 
 In the UI:
 
-```dart
 SignalBuilder<DataNode, AsyncValue<User>>(
   signal: (node) => node.userSignal,
   builder: (context, state) {
@@ -171,6 +212,31 @@ SignalBuilder<DataNode, AsyncValue<User>>(
       AsyncLoading() => const CircularProgressIndicator(),
       AsyncError(:final error) => Text('Error: $error'),
       AsyncData(:final value) => Text(value?.name ?? 'No data'),
+    };
+  },
+);
+```
+
+### StreamSignal
+
+`StreamSignal` allows you to easily bridge `Stream`s from your repositories or services into Trinity's reactive system.
+
+```dart
+class DataNode extends NodeInterface {
+  late final messages = registerSignal(StreamSignal(repository.messagesStream()));
+}
+```
+
+In the UI:
+
+```dart
+SignalBuilder<DataNode, AsyncValue<List<Message>>>(
+  signal: (node) => node.messages,
+  builder: (context, state) {
+    return switch (state) {
+      AsyncLoading() => const CircularProgressIndicator(),
+      AsyncError(:final error) => Text('Error: $error'),
+      AsyncData(:final value) => ListView(children: ...),
     };
   },
 );

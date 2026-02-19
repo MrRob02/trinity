@@ -141,11 +141,8 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
   NodeProvider({super.key, required N Function() create, required this.child})
     : builder = null,
       nodes = [create];
-  const NodeProvider.multiple({
-    super.key,
-    required this.nodes,
-    required this.child,
-  }) : builder = null;
+  const NodeProvider.many({super.key, required this.nodes, required this.child})
+    : builder = null;
 
   NodeProvider.builder({
     super.key,

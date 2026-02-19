@@ -88,6 +88,8 @@ abstract class _Node {
     onDispose();
     log('$runtimeType and signals disposed');
   }
+
+  dynamic get readable => null;
 }
 
 ///You can use this class to add loading and error states to your nodes
@@ -108,7 +110,7 @@ abstract class _Node {
 ///    bool fullScreen = false,
 ///  })
 ///```
-abstract class NodeInterface extends _Node {
+abstract class NodeInterface<R> extends _Node {
   late final _isLoading = registerSignal(Signal<bool>(false));
   late final _fullScreenLoading = registerSignal(Signal<bool>(false));
   late final _error = registerSignal(NullableSignal<Object>());
