@@ -151,7 +151,7 @@ For specific asynchronous data requirements, use `FutureSignal`. It automaticall
 
 ```dart
 class DataNode extends NodeInterface {
-  late final userSignal = FutureSignal(() => _fetchUser());
+  late final userSignal = registerSignal(FutureSignal(() => _fetchUser()));
 
   Future<User> _fetchUser() async {
     // Fetch user logic
