@@ -51,6 +51,8 @@ class CounterNode extends NodeInterface {
 }
 ```
 
+We use `registerSignal` so the node could handle the signal's dispose automatically, so you don't have to call `_count.dispose()` when closing the node
+
 ### 2. Provide the Node
 
 Inject the node into the widget tree using `NodeProvider`. This ensures the node is initialized and disposed of correctly.
@@ -243,6 +245,7 @@ SignalBuilder<DataNode, AsyncValue<List<Message>>>(
 ## Additional information
 
 - **Node Lifecycle**: Nodes have `onInit`, `onReady`, and `onDispose` methods that you can override to hook into their lifecycle.
+
 ## Inter-Node Communication with Bridges
 
 One of Trinity's most powerful features is the **Bridge System**. It allows nodes to communicate without a "Parent Controller" or "God Object".
@@ -258,8 +261,8 @@ Instead of passing the order object to the detail screen (which becomes stale if
 The `DetailNode` connects to `OrdersNode`. It "selects" the list of orders, "transforms" it to find the specific order it cares about, and "updates" the parent when changes occur.
 
 1. **Decentralized**: The `DetailNode` manages its own connection to the data source.
-2. **Reactive**: If `OrdersNode` updates the list, `DetailNode` automatically receives the new version of its specific order.
-3. **Synchronization**: If `DetailNode` modifies the order, it can push changes back to `OrdersNode` via the `update` callback.
+2. **Synchronization**: Bridge automatically handles setting the `value`, so you don't need to worry about update it in the parent manually.
+3. **Reactive**: `Bridge` updates the data directly on the parent and `DetailNode` automatically receives the new version of its specific order.
 
 ### Example
 
@@ -346,7 +349,7 @@ Trinity was born from the necessity to simplify code while ensuring robustness. 
 Trinity offers a balanced approach:
 
 - **Zero Boilerplate**: Forget about managing massive state objects or implementing `Equatable`. In Trinity, each property manages its own state independently. Controllers simply update specific values, and only the relevant components rebuild.
-- **Flutter-Native Robustness**: Utilizing `TrinityScope`, you can access any active node from anywhere in your app—whether navigating screens or opening dialogs. Nodes remain available while needed and are automatically cleaned up from memory when their master page is closed.
-- **Modular Controllers**: Say goodbye to "God Controllers." `TrinityScope` removes barriers between nodes, enabling secure cross-communication. You can use **Bridges** to derive local state from a parent node or access parent data directly without duplication (e.g., accessing `orders.length` from `OrdersNode` inside `OrderDetail`).
+- **Flutter-Native Robustness**: Utilizing `TrinityScope`, you can access any active node from anywhere in your app—whether navigating screens or opening dialogs. Nodes remain available while needed and are automatically cleaned up from memory (including its signals) when their master page is closed.
+- **Modular Controllers**: Say goodbye to "God Controllers." `TrinityScope` removes barriers between nodes, enabling secure cross-communication. You can use **Bridges** to derive local state from a parent node or access parent data directly without duplication (e.g., accessing `orders.length` from `OrdersNode` inside `OrderDetailPage`).
 - **Signals at the Core**: Signals act as state translators. Whether you have a mutable value, a stream, or a future, Trinity wraps it into a reactive Signal that manages the underlying complexity. No more manual stream creation—just wrap your data in a Signal and let Trinity handle the rest.
 - **Componentization First**: Trinity prioritizes efficient UI updates. The `SignalBuilder` listens exclusively to the specific Signal it requires. If the `orders` signal updates, your list rebuilds, but unrelated changes (like `isLoading`) won't trigger unnecessary repaints.
