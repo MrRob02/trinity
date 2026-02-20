@@ -202,7 +202,7 @@ class DataNode extends NodeInterface {
 ```
 
 In the UI:
-
+```dart
 SignalBuilder<DataNode, AsyncValue<User>>(
   signal: (node) => node.userSignal,
   builder: (context, state) {
