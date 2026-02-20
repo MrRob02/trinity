@@ -127,7 +127,7 @@ For cases where a widget needs to react to changes in multiple signals, use `Sig
 > 1. Add `build_runner` to `dev_dependencies`.
 > 2. Add `part 'your_file.g.dart';` to your node file.
 > 3. Run `dart run build_runner build`.
-> 4. Mixin the generated class: `class OrdersNode extends NodeInterface<OrdersNodeReadable>`.
+> 4. Add the type to the Interface (Optional but recommended): `class OrdersNode extends NodeInterface<OrdersNodeReadable>`.
 
 ```dart
 // orders_node.dart
