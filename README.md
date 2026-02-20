@@ -3,11 +3,9 @@ This README describes the package. If you publish this package to pub.dev,
 this README's contents appear on the landing page for your package.
 -->
 
-# Trinity
+# Trinity - Documentation
 
 Trinity is a robust state management package for Flutter that implements a node-based architecture using reactive signals. It provides a structured way to separate business logic from UI code, ensuring modularity, testability, and efficient implementation of reactive patterns.
-
-# Documentation
 
 ## Features
 
