@@ -289,7 +289,7 @@ class DetailNode extends NodeInterface {
 
   // 1. Define the Bridge
   // <TargetNode, SourceType, LocalType>
-  late final _orderBridge = registerSignal(
+  late final orderBridge = registerSignal(
     TransformBridgeSignal(
       // Select the signal from the parent
       select: (OrdersNode node) => node.orders,
@@ -307,18 +307,15 @@ class DetailNode extends NodeInterface {
       },
     ),
   );
-  // And just like that, you have a ReadableSignal that works
-  //exactly like a normal signal, but it's connected to the parent node
-  ReadableSignal<OrderModel?> get order => _orderBridge.readableSignal;
 
   DetailNode(this.orderId);
 
   // Helper to update the order from the UI
   void changePrice(double newPrice) {
-    final currentOrder = _orderBridge.readableSignal.value;
+    final currentOrder = orderBridge.readableSignal.value;
     if (currentOrder != null) {
       // This triggers the 'update' callback defined above
-      _orderBridge.value = currentOrder.copyWith(price: newPrice);
+      orderBridge.value = currentOrder.copyWith(price: newPrice);
     }
   }
 }
@@ -327,7 +324,7 @@ class DetailNode extends NodeInterface {
 You can also use `BridgeSignal` if you don't need to transform the data.
 
 ```dart
-late final _orderBridge = registerSignal(
+late final ordersBridge = registerSignal(
   BridgeSignal(
     select: (OrdersNode node) => node.orders,
   ),
