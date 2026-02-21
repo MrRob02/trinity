@@ -1,8 +1,3 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
--->
-
 # Trinity - Documentation
 
 Trinity is a robust state management package for Flutter that implements a node-based architecture using reactive signals. It provides a structured way to separate business logic from UI code, ensuring modularity, testability, and efficient implementation of reactive patterns.
@@ -40,13 +35,10 @@ import 'package:trinity/trinity.dart';
 
 class CounterNode extends NodeInterface {
   // Private mutable signal
-  late final _count = registerSignal(Signal<int>(0));
-
-  // Public read-only signal
-  ReadableSignal<int> get count => _count.readable;
+  late final count = registerSignal(Signal<int>(0));
 
   void increment() {
-    _count.value++;
+    count.value++;
   }
 }
 ```
@@ -102,9 +94,9 @@ class HomePage extends StatelessWidget {
           const Text('You have pushed the button this many times:'),
           SignalBuilder<CounterNode, int>(
             signal: (node) => node.count,
-            builder: (context, count) {
+            builder: (context, value) {
               return Text(
-                '$count',
+                '$value',
                 style: Theme.of(context).textTheme.headlineMedium,
               );
             },
@@ -129,22 +121,25 @@ For cases where a widget needs to react to changes in multiple signals, use `Sig
 > 1. Add `build_runner` to `dev_dependencies`.
 > 2. Add `part 'your_file.g.dart';` to your node file.
 > 3. Run `dart run build_runner build`.
-> 4. Add the type to the Interface (Optional but recommended): `class OrdersNode extends NodeInterface<OrdersNodeReadable>`.
+> 4. Mixin the generated class: `class OrdersNode extends NodeInterface<ReadableOrdersNode>`.
+> 5. Add `@override ReadableOrdersNode get readable => ReadableOrdersNode(this);` to your node.
 
 ```dart
 // orders_node.dart
 part 'orders_node.g.dart';
 
-class OrdersNode extends NodeInterface<OrdersNodeReadable> {
-  late final _orders = registerSignal(Signal<List<OrderModel>>([]));
-  late final _user = registerSignal(Signal<User>(User.empty()));
-  // ...
+class OrdersNode extends NodeInterface<ReadableOrdersNode> {
+  late final orders = registerSignal(Signal<List<OrderModel>>([]));
+  late final user = registerSignal(Signal<User>(User.empty()));
+
+  @override
+  ReadableOrdersNode get readable => ReadableOrdersNode(this);
 }
 ```
 
 ```dart
 // home_page.dart
-SignalBuilderMany<OrdersNode, OrdersNodeReadable>(
+SignalBuilderMany<OrdersNode, ReadableOrdersNode>(
   signals: (node) => {node.orders, node.user},
   builder: (context, reader) {
     // reader is the generated class that exposes values directly
@@ -204,6 +199,7 @@ class DataNode extends NodeInterface {
 ```
 
 In the UI:
+
 ```dart
 SignalBuilder<DataNode, AsyncValue<User>>(
   signal: (node) => node.userSignal,
@@ -245,8 +241,7 @@ SignalBuilder<DataNode, AsyncValue<List<Message>>>(
 ## Additional information
 
 - **Node Lifecycle**: Nodes have `onInit`, `onReady`, and `onDispose` methods that you can override to hook into their lifecycle.
-
-## Inter-Node Communication with Bridges
+## Bridges (Inter-Node Communication)
 
 One of Trinity's most powerful features is the **Bridge System**. It allows nodes to communicate without a "Parent Controller" or "God Object".
 
@@ -272,15 +267,14 @@ The `DetailNode` connects to `OrdersNode`. It "selects" the list of orders, "tra
 
 ```dart
 class OrdersNode extends NodeInterface {
-  late final _orders = registerSignal(Signal<List<OrderModel>>([]));
-  ReadableSignal<List<OrderModel>> get orders => _orders.readable;
+  late final orders = registerSignal(Signal<List<OrderModel>>([]));
 
   // Method to update a single order in the list
   void updateOrder(OrderModel updatedOrder) {
-    final newOrders = _orders.value.map((o) {
+    final newOrders = orders.value.map((o) {
       return o.id == updatedOrder.id ? updatedOrder : o;
     }).toList();
-    _orders.value = newOrders;
+    orders.value = newOrders;
   }
 }
 ```
@@ -296,7 +290,7 @@ class DetailNode extends NodeInterface {
   // 1. Define the Bridge
   // <TargetNode, SourceType, LocalType>
   late final _orderBridge = registerSignal(
-    BridgeSignal(
+    TransformBridgeSignal(
       // Select the signal from the parent
       select: (OrdersNode node) => node.orders,
 
@@ -328,6 +322,16 @@ class DetailNode extends NodeInterface {
     }
   }
 }
+```
+
+You can also use `BridgeSignal` if you don't need to transform the data.
+
+```dart
+late final _orderBridge = registerSignal(
+  BridgeSignal(
+    select: (OrdersNode node) => node.orders,
+  ),
+);
 ```
 
 With this setup:

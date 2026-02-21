@@ -2,6 +2,8 @@
 // Base Node
 // ─────────────────────────────────────────────
 
+// ignore_for_file: unintended_html_in_doc_comment
+
 part of 'trinity_scope.dart';
 
 ///The base class for all nodes.
@@ -89,7 +91,15 @@ abstract class _Node {
     log('$runtimeType and signals disposed');
   }
 
-  dynamic get readable => null;
+  ///This is the readable version of the node
+  ///It is used to access the signals of the node directly by its value.
+  ///
+  ///You will use it for the [ManSignalBuilder]
+  ///
+  ///You can generate it with build_runner and the value
+  ///should be Readable<YourNodeName>(this)
+  @protected
+  dynamic get readable;
 }
 
 ///You can use this class to add loading and error states to your nodes
@@ -111,13 +121,9 @@ abstract class _Node {
 ///  })
 ///```
 abstract class NodeInterface<R> extends _Node {
-  late final _isLoading = registerSignal(Signal<bool>(false));
-  late final _fullScreenLoading = registerSignal(Signal<bool>(false));
-  late final _error = registerSignal(NullableSignal<Object>());
-  ReadableSignal<bool> get isLoading => _isLoading.readable;
-  ReadableSignal<bool> get fullScreenLoading => _fullScreenLoading.readable;
-  ReadableSignal<Object?> get error => _error.readable;
-
+  late final isLoading = registerSignal(Signal<bool>(false));
+  late final fullScreenLoading = registerSignal(Signal<bool>(false));
+  late final error = registerSignal(NullableSignal<Object>());
   Future<T> loading<T>(
     Future<T> future, {
     bool invokeLoading = true,
@@ -125,22 +131,22 @@ abstract class NodeInterface<R> extends _Node {
   }) async {
     if (invokeLoading) {
       if (fullScreen) {
-        _fullScreenLoading.value = true;
+        fullScreenLoading.value = true;
       } else {
-        _isLoading.value = true;
+        isLoading.value = true;
       }
     }
     try {
       return await future;
     } catch (e) {
-      _error.emit(e);
+      error.emit(e);
       rethrow;
     } finally {
       if (invokeLoading) {
         if (fullScreen) {
-          _fullScreenLoading.value = false;
+          fullScreenLoading.value = false;
         } else {
-          _isLoading.value = false;
+          isLoading.value = false;
         }
       }
     }

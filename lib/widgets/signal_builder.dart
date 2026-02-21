@@ -4,7 +4,18 @@ import 'package:trinity/models/signal.dart';
 import 'package:trinity/trinity_scope.dart';
 
 class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
-  final ReadableSignal<S> Function(N) signal;
+  ///You can choose any Node that is an ancestor of the current widget.
+  ///No matter how far away it is, just make it explicit like this:
+  ///
+  ///```dart
+  ///SignalBuilder(
+  ///  signal: (YourNode node) => node.yourSignal,
+  ///  builder: (context, value) {
+  ///    return Text(value);
+  ///  },
+  ///)
+  ///```
+  final Signal<S> Function(N) signal;
   final Widget Function(BuildContext context, S value) builder;
 
   const SignalBuilder({super.key, required this.signal, required this.builder});
@@ -48,7 +59,7 @@ class _SignalBuilderState<N extends NodeInterface, S>
     final node = context.findNode<N>();
     final signal = widget.signal(node);
 
-    assert(node.isSignalRegistered(signal.source), '''
+    assert(node.isSignalRegistered(signal.readable.source), '''
       Signal is not registered
       This might be because you created the signals directly instead of using [registerSignal]
       In order to fix this, you need to use [registerSignal] to register your signals.
@@ -60,6 +71,7 @@ class _SignalBuilderState<N extends NodeInterface, S>
 
 class SignalBuilderMany<N extends NodeInterface<R>, R> extends StatefulWidget {
   final Set<Signal> Function(N) signals;
+  final Widget Function(BuildContext context, R readable) builder;
 
   ///IMPORTANT!!
   ///
@@ -68,8 +80,6 @@ class SignalBuilderMany<N extends NodeInterface<R>, R> extends StatefulWidget {
   ///
   ///This widget was created for cases where you need to listen to many (more than 2) signals.
   ///We strongly recommend you to use [SignalBuilder] instead if you only need to listen to one or two signals.
-  final Widget Function(BuildContext context, R readable) builder;
-
   const SignalBuilderMany({
     super.key,
     required this.signals,
