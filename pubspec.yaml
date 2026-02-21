@@ -1,8 +1,8 @@
 name: trinity
 description: "A reactive state management library for Flutter."
 version: 0.1.0
-homepage:
-
+homepage: https://github.com/MrRob02/trinity
+repository: https://github.com/MrRob02/trinity
 environment:
   sdk: ^3.10.8
   flutter: ">=1.17.0"
