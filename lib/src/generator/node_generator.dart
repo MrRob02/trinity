@@ -14,7 +14,7 @@ class NodeGenerator extends Generator {
       final signalFields = _getSignalFields(cls);
       if (signalFields.isEmpty) continue;
       final className = cls.name;
-      final readableName = '${className}Readable';
+      final readableName = 'Readable$className';
 
       buffer.writeln('class $readableName {');
       buffer.writeln('  final $className _node;');
@@ -28,16 +28,6 @@ class NodeGenerator extends Generator {
           '_node.${field.name}.readable.value;',
         );
       }
-
-      buffer.writeln('}');
-      buffer.writeln();
-      buffer.writeln('mixin _\$${className}Readable on _Node {');
-      buffer.writeln('  @override');
-      buffer.writeln(
-        '  $readableName get readable => $readableName(this as $className);',
-      );
-      buffer.writeln('}');
-      buffer.writeln();
     }
 
     if (buffer.isEmpty) return null;
@@ -76,7 +66,7 @@ class NodeGenerator extends Generator {
     // Si el tipo ya ES Signal<T>, tomamos el argumento directo
     if (type.element.name == 'Signal') {
       if (type.typeArguments.isEmpty) return 'dynamic';
-      return type.typeArguments.first.getDisplayString(withNullability: true);
+      return type.typeArguments.first.getDisplayString();
     }
 
     // Si es subtype (BridgeSignal, etc.), buscamos en los supertypes
@@ -90,8 +80,6 @@ class NodeGenerator extends Generator {
       return 'dynamic';
     }
 
-    return signalType.typeArguments.first.getDisplayString(
-      withNullability: true,
-    );
+    return signalType.typeArguments.first.getDisplayString();
   }
 }

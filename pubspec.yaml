@@ -1,6 +1,6 @@
 name: trinity
 description: "A reactive state management library for Flutter."
-version: 0.0.1
+version: 0.1.0
 homepage:
 
 environment:
