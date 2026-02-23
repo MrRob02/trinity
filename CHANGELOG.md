@@ -8,6 +8,10 @@
 
 * Extracted node generation logic to the `trinity_generator` package and removed internal build dependencies.
 
+## 0.1.2
+
+* Remove build.yaml
+
 <!-- ## 0.2.0
 
 * TODO: Describe changes in 0.2.0 -->
