@@ -1,4 +1,22 @@
-# Trinity - Documentation
+# Trinity
+
+**Signals + Nodes = Simple State Management**
+```dart
+// 1. Define state
+class CounterNode extends NodeInterface {
+  late final count = registerSignal(Signal(0));
+
+  void increment() => count.value++;
+}
+
+// 2. Build UI
+SignalBuilder(
+  signal: (node) => node.count,
+  builder: (context, value) => Text('$value'),
+)
+```
+
+**That's it.** No streams, no builders, no boilerplate.
 
 Trinity is a robust state management package for Flutter that implements a node-based architecture using reactive signals. It provides a structured way to separate business logic from UI code, ensuring modularity, testability, and efficient implementation of reactive patterns.
 
@@ -11,18 +29,52 @@ Trinity is a robust state management package for Flutter that implements a node-
 - **Widget Integration**: Specialized `SignalBuilder` widget for strictly typed, reactive UI construction.
 - **Context Extensions**: Easy access to nodes from the widget tree using `context.findNode<N>()`.
 
-## Getting started
+## Quick Start
 
-Wrap your application or a specific subtree with `TrinityScope` to initialize the scope required for node management.
+1. Add to pubspec:
+```yaml
+dependencies:
+  trinity: ^0.1.4
+```
 
+2. Wrap your app:
 ```dart
-import 'package:flutter/material.dart';
 import 'package:trinity/trinity.dart';
 
 void main() {
-  runApp(TrinityScope(child: const MainApp()));
+  runApp(TrinityScope(child: const MyApp()));
 }
 ```
+
+3. Create your first node (see Usage below).
+
+# Why Trinity?
+
+Trinity was born from the necessity to simplify code while ensuring robustness. Drawing inspiration from the most popular state management solutions—Bloc, GetX, and Riverpod—Trinity aims to unify their strengths while mitigating their weaknesses.
+
+### The Landscape
+
+| Feature | BLoC | Riverpod | GetX | Trinity |
+|---------|------|----------|------|---------|
+| Global scope | ✅ | ✅ | ✅ | ✅ |
+| Auto dispose | ❌ | ⚠️ | ❌ | ✅ |
+| No magic | ✅ | ✅ | ❌ | ✅ |
+| Cross-node signals | ❌ | ⚠️ | ✅ | ✅ (BridgeSignal) |
+| Learning curve | High | Medium | Low | Low |
+
+- **Bloc**: Celebrated for its robustness and adherence to good practices via the widget tree lifecycle. However, it suffers from excessive boilerplate (requiring repetitive variable definitions for constructors, `Equatable`, getters, and `copyWith`) and lacks native inter-bloc communication.
+- **Riverpod**: A strong middle ground with excellent dependency injection. However, its lifecycle management can be confusing (e.g., balancing caching with auto-dispose), and the architectural separation of data from controllers can complicate flow control.
+- **GetX**: Loved for its flexibility and minimal file count. However, its heavy reliance on runtime checks makes it error-prone, and managing controllers outside the widget tree often leads to unmaintainable code and bad practices.
+
+### The Trinity Solution
+
+Trinity offers a balanced approach:
+
+- **Zero Boilerplate**: Forget about managing massive state objects or implementing `Equatable`. In Trinity, each property manages its own state independently. Controllers simply update specific values, and only the relevant components rebuild.
+- **Flutter-Native Robustness**: Utilizing `TrinityScope`, you can access any active node from anywhere in your app—whether navigating screens or opening dialogs. Nodes remain available while needed and are automatically cleaned up from memory (including its signals) when their master page is closed.
+- **Modular Controllers**: Say goodbye to "God Controllers." `TrinityScope` removes barriers between nodes, enabling secure cross-communication. You can use **Bridges** to derive local state from a parent node or access parent data directly without duplication (e.g., accessing `orders.length` from `OrdersNode` inside `OrderDetailPage`).
+- **Signals at the Core**: Signals act as state translators. Whether you have a mutable value, a stream, or a future, Trinity wraps it into a reactive Signal that manages the underlying complexity. No more manual stream creation—just wrap your data in a Signal and let Trinity handle the rest.
+- **Componentization First**: Trinity prioritizes efficient UI updates. The `SignalBuilder` listens exclusively to the specific Signal it requires. If the `orders` signal updates, your list rebuilds, but unrelated changes (like `isLoading`) won't trigger unnecessary repaints.
 
 ## Usage
 
@@ -43,7 +95,7 @@ class CounterNode extends NodeInterface {
 }
 ```
 
-We use `registerSignal` so the node could handle the signal's dispose automatically, so you don't have to call `_count.dispose()` when closing the node
+We use `registerSignal` so the node could handle the signal's dispose automatically, so you don't have to call `count.dispose()` when closing the node.
 
 ### 2. Provide the Node
 
@@ -70,7 +122,6 @@ class MainApp extends StatelessWidget {
 > **Note**: simpler usage `NodeProvider(create: () => MyNode(), child: ...)`
 > 
 > - Use `NodeProvider.many` to provide multiple nodes at once.
-> - Use `NodeProvider.builder` to access the node immediately in the `builder` callback.
 
 ### 3. Consume the Node
 
@@ -112,21 +163,21 @@ class HomePage extends StatelessWidget {
 }
 ```
 
-### 4. Listening to Multiple Signals
+## Advanced: Multiple Signals with Code Generation
 
-For cases where a widget needs to react to changes in multiple signals, use `SignalBuilderMany`.
+For large nodes with many signals, you can use `SignalBuilderMany` with generated readonly wrappers.
 
 > **IMPORTANT**: This feature requires code generation using `build_runner`.
 > 
-> 1. Add `build_runner` to `dev_dependencies`.
-> 2. Add `part 'your_file.g.dart';` to your node file.
+> 1. Add `build_runner` and `trinity_generator` to `dev_dependencies`.
+> 2. Add `part 'your_file.readable.dart';` to your node file.
 > 3. Run `dart run build_runner build`.
 > 4. Mixin the generated class: `class OrdersNode extends NodeInterface<ReadableOrdersNode>`.
 > 5. Add `@override ReadableOrdersNode get readable => ReadableOrdersNode(this);` to your node.
 
 ```dart
 // orders_node.dart
-part 'orders_node.g.dart';
+part 'orders_node.readable.dart';
 
 class OrdersNode extends NodeInterface<ReadableOrdersNode> {
   late final orders = registerSignal(Signal<List<OrderModel>>([]));
@@ -241,15 +292,20 @@ SignalBuilder<DataNode, AsyncValue<List<Message>>>(
 ## Additional information
 
 - **Node Lifecycle**: Nodes have `onInit`, `onReady`, and `onDispose` methods that you can override to hook into their lifecycle.
-## Bridges (Inter-Node Communication)
 
-One of Trinity's most powerful features is the **Bridge System**. It allows nodes to communicate without a "Parent Controller" or "God Object".
+## Problem: Stale Data Between Screens
 
-A common pattern is a **Master-Detail** relationship:
-- `OrdersNode` holds a list of all orders.
-- `DetailNode` manages the state of a *single* order.
+You tap an order in a list → navigate to detail → edit the price. 
+Now you go back. **The list still shows the old price.**
 
-Instead of passing the order object to the detail screen (which becomes stale if the list updates), or making the detail node fetch the entire list again, you use a **Bridge**.
+**Solutions people try:**
+- Pass the object → It's a copy, changes don't sync back ❌
+- Refetch the list → Wasteful, slow, flickers ❌
+- Use a God Controller → Couples everything together ❌
+
+**Trinity's solution: Bridges**
+
+The detail screen *connects* to the list's data source. Changes sync automatically, both ways.
 
 ### How it works
 
@@ -334,23 +390,3 @@ late final ordersBridge = registerSignal(
 With this setup:
 - If `OrdersNode` updates the list (e.g., from a websocket), `DetailNode` updates automatically.
 - If `DetailNode` changes the price, `OrdersNode` receives the update and the list (and any other listeners) update automatically.
-
-# Why Trinity?
-
-Trinity was born from the necessity to simplify code while ensuring robustness. Drawing inspiration from the most popular state management solutions—Bloc, GetX, and Riverpod—Trinity aims to unify their strengths while mitigating their weaknesses.
-
-### The Landscape
-
-- **Bloc**: Celebrated for its robustness and adherence to good practices via the widget tree lifecycle. However, it suffers from excessive boilerplate (requiring repetitive variable definitions for constructors, `Equatable`, getters, and `copyWith`) and lacks native inter-bloc communication.
-- **GetX**: Loved for its flexibility and minimal file count. However, its heavy reliance on runtime checks makes it error-prone, and managing controllers outside the widget tree often leads to unmaintainable code and bad practices.
-- **Riverpod**: A strong middle ground with excellent dependency injection. However, its lifecycle management can be confusing (e.g., balancing caching with auto-dispose), and the architectural separation of data from controllers can complicate flow control.
-
-### The Trinity Solution
-
-Trinity offers a balanced approach:
-
-- **Zero Boilerplate**: Forget about managing massive state objects or implementing `Equatable`. In Trinity, each property manages its own state independently. Controllers simply update specific values, and only the relevant components rebuild.
-- **Flutter-Native Robustness**: Utilizing `TrinityScope`, you can access any active node from anywhere in your app—whether navigating screens or opening dialogs. Nodes remain available while needed and are automatically cleaned up from memory (including its signals) when their master page is closed.
-- **Modular Controllers**: Say goodbye to "God Controllers." `TrinityScope` removes barriers between nodes, enabling secure cross-communication. You can use **Bridges** to derive local state from a parent node or access parent data directly without duplication (e.g., accessing `orders.length` from `OrdersNode` inside `OrderDetailPage`).
-- **Signals at the Core**: Signals act as state translators. Whether you have a mutable value, a stream, or a future, Trinity wraps it into a reactive Signal that manages the underlying complexity. No more manual stream creation—just wrap your data in a Signal and let Trinity handle the rest.
-- **Componentization First**: Trinity prioritizes efficient UI updates. The `SignalBuilder` listens exclusively to the specific Signal it requires. If the `orders` signal updates, your list rebuilds, but unrelated changes (like `isLoading`) won't trigger unnecessary repaints.
