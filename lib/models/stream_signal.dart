@@ -18,8 +18,8 @@ class StreamSignal<T> extends Signal<AsyncValue<T>> {
   }
 
   void _emit(AsyncValue<T> newValue) {
-    _value = newValue;
-    _controller.add(newValue);
+    value = newValue;
+    controller.add(newValue);
   }
 
   @override

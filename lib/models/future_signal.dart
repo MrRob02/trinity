@@ -17,6 +17,6 @@ class FutureSignal<T> extends Signal<AsyncValue<T>> {
 
   void _emit(AsyncValue<T> newValue) {
     value = newValue;
-    _controller.add(newValue);
+    controller.add(newValue);
   }
 }

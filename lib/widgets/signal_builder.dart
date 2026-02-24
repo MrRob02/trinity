@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:trinity/models/signal.dart';
-import 'package:trinity/trinity_scope.dart';
+import 'package:trinity/node_interface.dart';
+import 'package:trinity/node_anatomy.dart';
 
 class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
   ///You can choose any Node that is an ancestor of the current widget.

@@ -4,7 +4,12 @@
 
 // ignore_for_file: unintended_html_in_doc_comment
 
-part of 'trinity_scope.dart';
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:trinity/models/base_bridge_signal.dart';
+import 'package:trinity/models/base_signal.dart';
+import 'package:trinity/node_anatomy.dart';
 
 ///The base class for all nodes.
 ///
@@ -16,12 +21,12 @@ part of 'trinity_scope.dart';
 //inside the Node class
 //in case you need to find other nodes from inside the node.
 //Right now we're not going to let developers access the scope from the node.
-abstract class _Node {
+abstract class Node {
   late final InheritedTrinityScope _scope; //*
   bool _initialized = false;
 
   // Llamado por NodeProvider al registrar
-  void _attach(InheritedTrinityScope scope) {
+  void attach(InheritedTrinityScope scope) {
     assert(!_initialized, 'Node ya fue inicializado.');
     _scope = scope; //*
     for (final bridge in _bridges) {
@@ -80,7 +85,7 @@ abstract class _Node {
   void onDispose() {}
 
   /// Método interno llamado por el framework para limpiar recursos
-  void _dispose() {
+  void dispose() {
     for (final bridge in _bridges) {
       bridge.dispose();
     }
@@ -100,55 +105,4 @@ abstract class _Node {
   ///should be Readable<YourNodeName>(this)
   @protected
   dynamic get readable;
-}
-
-///You can use this class to add loading and error states to your nodes
-///```dart
-/// ReadableSignal<bool> isLoading
-///
-/// ReadableSignal<Object?> error
-///
-/// //A separate signal for full screen loading
-/// ReadableSignal<bool> fullScreenLoading
-///
-/// //You can use the [loading] method to wrap any async operation
-/// //so you don't have to handle the loading state yourself
-/// Future<T> loading<T>(
-///    Future<T> future, {
-///    bool invokeLoading = true,
-///    //If you want to show a full screen loading, just set this to true
-///    bool fullScreen = false,
-///  })
-///```
-abstract class NodeInterface<R> extends _Node {
-  late final isLoading = registerSignal(Signal<bool>(false));
-  late final fullScreenLoading = registerSignal(Signal<bool>(false));
-  late final error = registerSignal(NullableSignal<Object>());
-  Future<T> loading<T>(
-    Future<T> future, {
-    bool invokeLoading = true,
-    bool fullScreen = false,
-  }) async {
-    if (invokeLoading) {
-      if (fullScreen) {
-        fullScreenLoading.value = true;
-      } else {
-        isLoading.value = true;
-      }
-    }
-    try {
-      return await future;
-    } catch (e) {
-      error.emit(e);
-      rethrow;
-    } finally {
-      if (invokeLoading) {
-        if (fullScreen) {
-          fullScreenLoading.value = false;
-        } else {
-          isLoading.value = false;
-        }
-      }
-    }
-  }
 }

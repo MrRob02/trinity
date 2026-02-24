@@ -1,32 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:trinity/models/async_value.dart';
+import 'package:trinity/models/base_signal.dart';
 part 'future_signal.dart';
 part 'stream_signal.dart';
-
-/// Internal base class containing the "raw" state and stream logic.
-/// Signal extends this, but ReadableSignal only wraps it.
-abstract class BaseSignal<T> {
-  T _value;
-  final _controller = StreamController<T>.broadcast();
-
-  BaseSignal(this._value);
-
-  T get value => _value;
-
-  @protected
-  T get unsafeValue => _value;
-
-  Stream<T> get stream => _controller.stream;
-
-  Stream<T> get streamTriggerImmediatly => _controller.stream.startWith(_value);
-
-  @mustCallSuper
-  void dispose() {
-    _controller.close();
-  }
-}
 
 /// This class is just a read-only "view".
 /// It does NOT extend BaseSignal to avoid inheriting internal behaviors,
@@ -66,9 +43,9 @@ class Signal<T> extends BaseSignal<T> {
   set value(T newValue) => emit(newValue);
 
   void emit(T newValue) {
-    if (_value == newValue) return; // Small optional optimization
-    _value = newValue;
-    _controller.add(newValue);
+    if (value == newValue) return; // Small optional optimization
+    value = newValue;
+    controller.add(newValue);
   }
 }
 
@@ -79,9 +56,9 @@ class NullableSignal<T> extends BaseSignal<T?> {
   set value(T? newValue) => emit(newValue);
 
   void emit(T? newValue) {
-    if (_value == newValue) return; // Small optional optimization
-    _value = newValue;
-    _controller.add(newValue);
+    if (value == newValue) return; // Small optional optimization
+    value = newValue;
+    controller.add(newValue);
   }
 
   /// This is the readable public exposed signal.

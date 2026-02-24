@@ -1,13 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:trinity/models/base_bridge_signal.dart';
 import 'package:trinity/models/signal.dart';
-import 'package:trinity/trinity_scope.dart';
-
-abstract class BaseBridgeSignal<V> extends Signal<V?> {
-  BaseBridgeSignal(super.value);
-
-  void connect(InheritedTrinityScope scope);
-}
+import 'package:trinity/node_interface.dart';
+import 'package:trinity/node_anatomy.dart';
 
 /// A bridge that mirrors a parent node's signal with no transformation.
 ///
