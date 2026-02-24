@@ -12,6 +12,10 @@
 
 * Remove build.yaml
 
+## 0.1.3
+
+* Add NodeProvider, NodeInterface, and BaseSignal for structured node and signal management.
+
 <!-- ## 0.2.0
 
 * TODO: Describe changes in 0.2.0 -->
