@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:trinity/models/base_bridge_signal.dart';
 import 'package:trinity/models/base_signal.dart';
 import 'package:trinity/node_anatomy.dart';
+import 'package:trinity/trinity.dart';
 
 ///The base class for all nodes.
 ///
@@ -24,7 +25,6 @@ import 'package:trinity/node_anatomy.dart';
 abstract class Node {
   late final InheritedTrinityScope _scope; //*
   bool _initialized = false;
-
   // Llamado por NodeProvider al registrar
   void attach(InheritedTrinityScope scope) {
     assert(!_initialized, 'Node ya fue inicializado.');
@@ -104,5 +104,5 @@ abstract class Node {
   ///You can generate it with build_runner and the value
   ///should be Readable<YourNodeName>(this)
   @protected
-  dynamic get readable;
+  dynamic get readable => null;
 }

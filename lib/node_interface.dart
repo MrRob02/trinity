@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:trinity/models/signal.dart';
 import 'package:trinity/node.dart';
+import 'package:trinity/node_anatomy.dart';
 
 ///You can use this class to add loading and error states to your nodes
 ///```dart
@@ -23,8 +25,13 @@ abstract class NodeInterface<R> extends Node {
   late final isLoading = registerSignal(Signal<bool>(false));
   late final fullScreenLoading = registerSignal(Signal<bool>(false));
   late final error = registerSignal(NullableSignal<Object>());
+
+  static N of<N extends NodeInterface>(BuildContext context) {
+    return context.findNode<N>();
+  }
+
   Future<T> loading<T>(
-    Future<T> future, {
+    Future<T> Function() future, {
     bool invokeLoading = true,
     bool fullScreen = false,
   }) async {
@@ -36,7 +43,7 @@ abstract class NodeInterface<R> extends Node {
       }
     }
     try {
-      return await future;
+      return await future();
     } catch (e) {
       error.emit(e);
       rethrow;
@@ -49,5 +56,19 @@ abstract class NodeInterface<R> extends Node {
         }
       }
     }
+  }
+
+  Widget when<W extends Widget>({
+    required W Function() loading,
+    required W Function(Object) error,
+    required W Function() orElse,
+  }) {
+    if (isLoading.value) {
+      return loading();
+    }
+    if (this.error.value != null) {
+      return error(this.error.value!);
+    }
+    return orElse();
   }
 }

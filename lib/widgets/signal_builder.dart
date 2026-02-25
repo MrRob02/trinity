@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:trinity/models/signal.dart';
-import 'package:trinity/node_interface.dart';
+import 'package:trinity/models/base_signal.dart';
 import 'package:trinity/node_anatomy.dart';
+import 'package:trinity/trinity.dart';
 
 class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
   ///You can choose any Node that is an ancestor of the current widget.
@@ -16,10 +16,16 @@ class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
   ///  },
   ///)
   ///```
-  final Signal<S> Function(N) signal;
+  final BaseSignal<S> Function(N) signal;
   final Widget Function(BuildContext context, S value) builder;
+  final Function(S previousValue, S newValue)? listener;
 
-  const SignalBuilder({super.key, required this.signal, required this.builder});
+  const SignalBuilder({
+    super.key,
+    required this.signal,
+    required this.builder,
+    this.listener,
+  });
 
   @override
   State<SignalBuilder<N, S>> createState() => _SignalBuilderState<N, S>();
@@ -28,10 +34,19 @@ class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
 class _SignalBuilderState<N extends NodeInterface, S>
     extends State<SignalBuilder<N, S>> {
   StreamSubscription? _subscription;
+  S? _previousValue;
+  bool _initialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      final node = context.findNode<N>();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initFutures(node, {widget.signal(node)});
+      });
+    }
     _subscribe();
   }
 
@@ -44,7 +59,9 @@ class _SignalBuilderState<N extends NodeInterface, S>
   void _subscribe() {
     _subscription?.cancel();
     final node = context.findNode<N>();
-    _subscription = widget.signal(node).stream.listen((_) {
+    _subscription = widget.signal(node).stream.listen((value) {
+      widget.listener?.call(_previousValue as S, value);
+      _previousValue = value;
       if (mounted) setState(() {});
     });
   }
@@ -60,7 +77,7 @@ class _SignalBuilderState<N extends NodeInterface, S>
     final node = context.findNode<N>();
     final signal = widget.signal(node);
 
-    assert(node.isSignalRegistered(signal.readable.source), '''
+    assert(node.isSignalRegistered(signal), '''
       Signal is not registered
       This might be because you created the signals directly instead of using [registerSignal]
       In order to fix this, you need to use [registerSignal] to register your signals.
@@ -71,8 +88,9 @@ class _SignalBuilderState<N extends NodeInterface, S>
 }
 
 class SignalBuilderMany<N extends NodeInterface<R>, R> extends StatefulWidget {
-  final Set<Signal> Function(N) signals;
+  final Set<BaseSignal> Function(N) signals;
   final Widget Function(BuildContext context, R readable) builder;
+  final Function()? listener;
 
   ///IMPORTANT!!
   ///
@@ -85,6 +103,7 @@ class SignalBuilderMany<N extends NodeInterface<R>, R> extends StatefulWidget {
     super.key,
     required this.signals,
     required this.builder,
+    this.listener,
   });
 
   @override
@@ -95,10 +114,18 @@ class SignalBuilderMany<N extends NodeInterface<R>, R> extends StatefulWidget {
 class _SignalBuilderManyState<N extends NodeInterface<R>, R>
     extends State<SignalBuilderMany<N, R>> {
   List<StreamSubscription> _subscriptions = [];
+  bool _initialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_initialized) {
+      _initialized = true;
+      final node = context.findNode<N>();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initFutures(node, widget.signals(node));
+      });
+    }
     _subscribe();
   }
 
@@ -115,7 +142,10 @@ class _SignalBuilderManyState<N extends NodeInterface<R>, R>
         .signals(node)
         .map(
           (s) => s.stream.listen((_) {
-            if (mounted) setState(() {});
+            if (mounted) {
+              setState(() {});
+              widget.listener?.call();
+            }
           }),
         )
         .toList();
@@ -144,5 +174,16 @@ class _SignalBuilderManyState<N extends NodeInterface<R>, R>
     );
 
     return widget.builder(context, node.readable as R);
+  }
+}
+
+void _initFutures<N extends NodeInterface, S>(
+  Node node,
+  Set<BaseSignal<S>> signals,
+) {
+  for (var signal in signals) {
+    if (signal is FutureSignal) {
+      (signal as FutureSignal).fetch();
+    }
   }
 }

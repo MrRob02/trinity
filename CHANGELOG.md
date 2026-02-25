@@ -1,3 +1,7 @@
+## 0.1.5
+* Added listener to [SignalBuilder] and [SignalBuilderMany].
+* Fixed [SignalBuilder] and [SignalBuilderMany] to initialize futures on the first frame.
+* Changed [StreamSignal] result.
 
 ## 0.1.4
 * Fix pub.dev documentation

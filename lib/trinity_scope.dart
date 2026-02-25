@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:trinity/node_anatomy.dart';
 
+///A widget that provides a [NodeRegistry] to its descendants.
+///You should declare it at the root of your app.
+///```dart
+/// void main() async {
+///   runApp(
+///     TrinityScope(
+///       child: const MainApp(),
+///     ),
+///   );
+/// }
+///```
 class TrinityScope extends StatefulWidget {
   final Widget child;
   const TrinityScope({super.key, required this.child});

@@ -17,8 +17,8 @@ class NodeRegistry {
     node.onInit();
   }
 
-  void unregister(Node node) {
-    _nodes.remove(node.runtimeType);
+  void unregister<N extends Node>(N node) {
+    _nodes.remove(N);
     node.dispose();
   }
 

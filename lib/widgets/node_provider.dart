@@ -50,7 +50,7 @@ class NodeProviderState<N extends NodeInterface>
       _registry = scope.registry;
       for (final node in _nodes) {
         node.attach(scope); // ← inyecta el scope
-        _registry!.register(node); // ← llama onInit internamente
+        _registry!.register<N>(node); // ← llama onInit internamente
         WidgetsBinding.instance.addPostFrameCallback((_) {
           node.onReady(); // ← después del primer frame
         });
@@ -61,7 +61,7 @@ class NodeProviderState<N extends NodeInterface>
   @override
   void dispose() {
     for (final node in _nodes) {
-      _registry?.unregister(node); // ← llama onDispose internamente
+      _registry?.unregister<N>(node); // ← llama onDispose internamente
     }
     super.dispose();
   }

@@ -6,7 +6,7 @@ import 'package:rxdart/rxdart.dart';
 /// Internal base class containing the "raw" state and stream logic.
 /// Signal extends this, but ReadableSignal only wraps it.
 abstract class BaseSignal<T> {
-  final T _value;
+  T _value;
   final controller = StreamController<T>.broadcast();
 
   BaseSignal(this._value);
@@ -15,6 +15,9 @@ abstract class BaseSignal<T> {
 
   @protected
   T get unsafeValue => _value;
+
+  @protected
+  set unsafeValue(T v) => _value = v;
 
   Stream<T> get stream => controller.stream;
 
