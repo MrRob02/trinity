@@ -1,3 +1,6 @@
+## 0.1.6
+* Added SignalListener` and `SignalListenerMany` widgets.
+
 ## 0.1.5
 * Added listener to [SignalBuilder] and [SignalBuilderMany].
 * Fixed [SignalBuilder] and [SignalBuilderMany] to initialize futures on the first frame.

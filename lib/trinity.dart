@@ -12,6 +12,7 @@ export 'models/bridge_signal.dart';
 
 // Widgets
 export 'widgets/signal_builder.dart';
+export 'widgets/signal_listener.dart';
 export 'widgets/node_provider.dart';
 
 // export 'widgets/trinity_mixin.dart';

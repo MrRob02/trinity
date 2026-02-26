@@ -57,8 +57,8 @@ class NullableSignal<T> extends BaseSignal<T?> {
   set value(T? newValue) => emit(newValue);
 
   void emit(T? newValue) {
-    if (value == newValue) return; // Small optional optimization
-    value = newValue;
+    if (unsafeValue == newValue) return; // Small optional optimization
+    unsafeValue = newValue;
     controller.add(newValue);
   }
 

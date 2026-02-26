@@ -19,13 +19,26 @@ class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
   final BaseSignal<S> Function(N) signal;
   final Widget Function(BuildContext context, S value) builder;
   final Function(S previousValue, S newValue)? listener;
+  final bool isListener;
 
   const SignalBuilder({
     super.key,
     required this.signal,
     required this.builder,
     this.listener,
-  });
+  }) : isListener = false;
+
+  ///Use `SignalListener` instead.
+  ///
+  ///This is only an internal package constructor.
+  ///You're not supposed to use this constructor directly.
+  @protected
+  const SignalBuilder.listener({
+    super.key,
+    required this.signal,
+    required this.listener,
+    required this.builder,
+  }) : isListener = true;
 
   @override
   State<SignalBuilder<N, S>> createState() => _SignalBuilderState<N, S>();
@@ -62,7 +75,7 @@ class _SignalBuilderState<N extends NodeInterface, S>
     _subscription = widget.signal(node).stream.listen((value) {
       widget.listener?.call(_previousValue as S, value);
       _previousValue = value;
-      if (mounted) setState(() {});
+      if (mounted && !widget.isListener) setState(() {});
     });
   }
 
