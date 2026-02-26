@@ -8,6 +8,7 @@ class AsyncData<T> extends AsyncValue<T> {
   const AsyncData(this.value) : isLoading = false;
   const AsyncData.loading(this.value) : isLoading = true;
   const AsyncData.initial() : this(null);
+  bool get hasValue => value != null;
 }
 
 class AsyncLoading<T> extends AsyncData<T> {

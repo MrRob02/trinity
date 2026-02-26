@@ -10,8 +10,8 @@ class NodeRegistry {
   void register<N extends Node>(N node) {
     assert(
       !_nodes.containsKey(N),
-      'Node de tipo $N ya existe en este scope. '
-      'Usa un TrinityScope anidado si necesitas una instancia separada.',
+      'Type $N Node already exists in this scope. '
+      'Use a nested TrinityScope if you need a separate instance.',
     );
     _nodes[N] = node;
     node.onInit();
@@ -48,7 +48,10 @@ class InheritedTrinityScope extends InheritedWidget {
   static InheritedTrinityScope of(BuildContext context) {
     final scope = context
         .dependOnInheritedWidgetOfExactType<InheritedTrinityScope>();
-    assert(scope != null, 'No se encontró ningún TrinityScope en el árbol.');
+    assert(
+      scope != null,
+      'Couldn\'t find a TrinityScope in the widget tree. Did you wrap your app with TrinityScope?',
+    );
     return scope!;
   }
 
@@ -62,8 +65,8 @@ class InheritedTrinityScope extends InheritedWidget {
     if (parent != null) return parent.find<N>(context);
 
     throw FlutterError(
-      'Node de tipo $N no encontrado en ningún TrinityScope.\n'
-      'Asegúrate de registrarlo con un NodeProvider.',
+      'Node of type $N not found in any TrinityScope.\n'
+      'Make sure to register it with a NodeProvider.',
     );
   }
 
@@ -91,8 +94,8 @@ class InheritedTrinityScope extends InheritedWidget {
     // Sube al scope padre si existe
     // Como el scope es global único por ahora, esto simplemente falla
     throw FlutterError(
-      'Node de tipo $N no encontrado en el TrinityScope.\n'
-      'Asegúrate de registrarlo con un NodeProvider.',
+      'Node of type $N not found in the TrinityScope.\n'
+      'Make sure to register it with a NodeProvider.',
     );
   }
 }

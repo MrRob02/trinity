@@ -163,6 +163,17 @@ class HomePage extends StatelessWidget {
 }
 ```
 
+You can use `SignalListener` or `SignalListenerMany` to listen to signal changes and perform side effects.
+
+```dart
+SignalListener<CounterNode, int>(
+  signal: (node) => node.count,
+  listener: (previous, current) {
+    print('Count changed from $previous to $current');
+  },
+);
+```
+
 ## Advanced: Multiple Signals with Code Generation
 
 For large nodes with many signals, you can use `SignalBuilderMany` with generated readonly wrappers.
@@ -177,8 +188,11 @@ For large nodes with many signals, you can use `SignalBuilderMany` with generate
 
 ```dart
 // orders_node.dart
+import 'package:trinity/trinity.dart';
+import 'package:trinity_generator/trinity_generator.dart';
 part 'orders_node.readable.dart';
 
+@Readable()
 class OrdersNode extends NodeInterface<ReadableOrdersNode> {
   late final orders = registerSignal(Signal<List<OrderModel>>([]));
   late final user = registerSignal(Signal<User>(User.empty()));
@@ -255,11 +269,11 @@ In the UI:
 SignalBuilder<DataNode, AsyncValue<User>>(
   signal: (node) => node.userSignal,
   builder: (context, state) {
-    return switch (state) {
-      AsyncLoading() => const CircularProgressIndicator(),
-      AsyncError(:final error) => Text('Error: $error'),
-      AsyncData(:final value) => Text(value?.name ?? 'No data'),
-    };
+    return state.when(
+      builder: (value) => Text(value?.name ?? 'No data'),
+      loading: () => const CircularProgressIndicator(),
+      error: (error) => Text('Error: $error'),
+    );
   },
 );
 ```
@@ -277,14 +291,17 @@ class DataNode extends NodeInterface {
 In the UI:
 
 ```dart
-SignalBuilder<DataNode, AsyncValue<List<Message>>>(
+SignalBuilder<DataNode, List<Message>>?(
   signal: (node) => node.messages,
-  builder: (context, state) {
-    return switch (state) {
-      AsyncLoading() => const CircularProgressIndicator(),
-      AsyncError(:final error) => Text('Error: $error'),
-      AsyncData(:final value) => ListView(children: ...),
-    };
+  builder: (context, messages) {
+    return messages==null
+      ? const CircularProgressIndicator()
+      : ListView.builder(
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            return Text(messages[index].text);
+          },
+      );
   },
 );
 ```
