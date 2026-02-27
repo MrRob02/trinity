@@ -26,13 +26,18 @@ abstract class Node {
   late final InheritedTrinityScope _scope; //*
   bool _initialized = false;
   // Llamado por NodeProvider al registrar
-  void attach(InheritedTrinityScope scope) {
-    assert(!_initialized, 'Node ya fue inicializado.');
+  ///Returns true if the node was previously initialized, false otherwise
+  bool attach(InheritedTrinityScope scope) {
+    assert(
+      !_initialized,
+      'Node already initialized. If you want to reuse it, set the reuse parameter of your NodeProvider to true.',
+    );
     _scope = scope; //*
     for (final bridge in _bridges) {
       bridge.connect(scope); // busca el Node B y se suscribe
     }
     _initialized = true;
+    return true;
   }
 
   //*
@@ -64,6 +69,7 @@ abstract class Node {
       }
     }
     _signals.add(signal);
+    signal.attachedNode = this;
     return signal;
   }
 
@@ -99,10 +105,13 @@ abstract class Node {
   ///This is the readable version of the node
   ///It is used to access the signals of the node directly by its value.
   ///
-  ///You will use it for the [ManSignalBuilder]
+  ///You will use it for the `ManySignalBuilder`
   ///
-  ///You can generate it with build_runner and the value
-  ///should be Readable<YourNodeName>(this)
+  ///In order to use it you need to generate it with
+  ///`build_runner` and the value should be
+  ///```dart
+  ///ReadableYourNode get readable => ReadableYourNode(this)
+  ///```
   @protected
   dynamic get readable => null;
 }

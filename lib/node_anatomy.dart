@@ -7,22 +7,40 @@ import 'package:trinity/node_interface.dart';
 
 class NodeRegistry {
   final Map<Type, Node> _nodes = {};
+
   void register<N extends Node>(N node) {
+    final key = node.runtimeType;
     assert(
-      !_nodes.containsKey(N),
-      'Type $N Node already exists in this scope. '
-      'Use a nested TrinityScope if you need a separate instance.',
+      !_nodes.containsKey(key),
+      'Node of type $key already exists in this scope.\n\n'
+      'Solutions:\n'
+      '1. Use context.findNode<YourNode>().\n'
+      '2. Use a nested TrinityScope if you need a separate instance.\n'
+      '3. Use NodeProvider.reuse\n',
     );
-    _nodes[N] = node;
+    _nodes[key] = node;
     node.onInit();
   }
 
   void unregister<N extends Node>(N node) {
-    _nodes.remove(N);
+    _nodes.remove(node.runtimeType);
     node.dispose();
   }
 
-  N? get<N extends Node>() => _nodes[N] as N?;
+  /// Looks up a node by type compatibility (supports interfaces).
+  N? getOrNull<N extends Node>() {
+    // Exact match first
+    final exact = _nodes[N];
+    if (exact != null) return exact as N;
+    // Subtype match (e.g. find ProductsNode via CatalogueControllerInterface)
+    for (final node in _nodes.values) {
+      if (node is N) return node;
+    }
+    return null;
+  }
+
+  /// Checks if a node with this exact [runtimeType] already exists.
+  Node? getByRuntimeType(Type type) => _nodes[type];
 
   void disposeAll() {
     for (final node in _nodes.values) {
@@ -57,7 +75,7 @@ class InheritedTrinityScope extends InheritedWidget {
 
   /// Busca N desde el scope más cercano hacia arriba
   N find<N extends NodeInterface>(BuildContext context) {
-    final node = registry.get<N>();
+    final node = registry.getOrNull<N>();
     if (node != null) return node;
 
     // Sube al siguiente scope
@@ -88,7 +106,7 @@ class InheritedTrinityScope extends InheritedWidget {
 
   // Dentro de TrinityScope
   N findByType<N extends NodeInterface>() {
-    final node = registry.get<N>();
+    final node = registry.getOrNull<N>();
     if (node != null) return node;
 
     // Sube al scope padre si existe
@@ -106,4 +124,6 @@ class InheritedTrinityScope extends InheritedWidget {
 extension TrinityContextExtension on BuildContext {
   N findNode<N extends NodeInterface>() =>
       InheritedTrinityScope.of(this).find<N>(this);
+  N? findNodeOrNull<N extends NodeInterface>() =>
+      InheritedTrinityScope.of(this).registry.getOrNull<N>();
 }

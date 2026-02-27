@@ -1,22 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:trinity/models/base_signal.dart';
-import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
 
-class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
+class SignalBuilder<S> extends StatefulWidget {
   ///You can choose any Node that is an ancestor of the current widget.
   ///No matter how far away it is, just make it explicit like this:
   ///
   ///```dart
   ///SignalBuilder(
-  ///  signal: (YourNode node) => node.yourSignal,
+  ///  signal: node.yourSignal,
   ///  builder: (context, value) {
   ///    return Text(value);
   ///  },
   ///)
   ///```
-  final BaseSignal<S> Function(N) signal;
+  final BaseSignal<S> signal;
   final Widget Function(BuildContext context, S value) builder;
   final Function(S previousValue, S newValue)? listener;
   final bool isListener;
@@ -41,11 +40,10 @@ class SignalBuilder<N extends NodeInterface, S> extends StatefulWidget {
   }) : isListener = true;
 
   @override
-  State<SignalBuilder<N, S>> createState() => _SignalBuilderState<N, S>();
+  State<SignalBuilder<S>> createState() => _SignalBuilderState<S>();
 }
 
-class _SignalBuilderState<N extends NodeInterface, S>
-    extends State<SignalBuilder<N, S>> {
+class _SignalBuilderState<S> extends State<SignalBuilder<S>> {
   StreamSubscription? _subscription;
   S? _previousValue;
   bool _initialized = false;
@@ -55,24 +53,22 @@ class _SignalBuilderState<N extends NodeInterface, S>
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
-      final node = context.findNode<N>();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _initFutures(node, {widget.signal(node)});
+        _initFutures({widget.signal});
       });
     }
     _subscribe();
   }
 
   @override
-  void didUpdateWidget(covariant SignalBuilder<N, S> oldWidget) {
+  void didUpdateWidget(covariant SignalBuilder<S> oldWidget) {
     super.didUpdateWidget(oldWidget);
     _subscribe();
   }
 
   void _subscribe() {
     _subscription?.cancel();
-    final node = context.findNode<N>();
-    _subscription = widget.signal(node).stream.listen((value) {
+    _subscription = widget.signal.stream.listen((value) {
       widget.listener?.call(_previousValue as S, value);
       _previousValue = value;
       if (mounted && !widget.isListener) setState(() {});
@@ -87,21 +83,20 @@ class _SignalBuilderState<N extends NodeInterface, S>
 
   @override
   Widget build(BuildContext context) {
-    final node = context.findNode<N>();
-    final signal = widget.signal(node);
+    final node = widget.signal.attachedNode;
 
-    assert(node.isSignalRegistered(signal), '''
+    assert(node.isSignalRegistered(widget.signal), '''
       Signal is not registered
       This might be because you created the signals directly instead of using [registerSignal]
       In order to fix this, you need to use [registerSignal] to register your signals.
 ''');
 
-    return widget.builder(context, signal.value);
+    return widget.builder(context, widget.signal.value);
   }
 }
 
-class SignalBuilderMany<N extends NodeInterface<R>, R> extends StatefulWidget {
-  final Set<BaseSignal> Function(N) signals;
+class SignalBuilderMany<R> extends StatefulWidget {
+  final Set<BaseSignal> signals;
   final Widget Function(BuildContext context, R readable) builder;
   final Function()? listener;
 
@@ -120,12 +115,10 @@ class SignalBuilderMany<N extends NodeInterface<R>, R> extends StatefulWidget {
   });
 
   @override
-  State<SignalBuilderMany<N, R>> createState() =>
-      _SignalBuilderManyState<N, R>();
+  State<SignalBuilderMany<R>> createState() => _SignalBuilderManyState<R>();
 }
 
-class _SignalBuilderManyState<N extends NodeInterface<R>, R>
-    extends State<SignalBuilderMany<N, R>> {
+class _SignalBuilderManyState<R> extends State<SignalBuilderMany<R>> {
   List<StreamSubscription> _subscriptions = [];
   bool _initialized = false;
 
@@ -134,25 +127,22 @@ class _SignalBuilderManyState<N extends NodeInterface<R>, R>
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
-      final node = context.findNode<N>();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _initFutures(node, widget.signals(node));
+        _initFutures(widget.signals);
       });
     }
     _subscribe();
   }
 
   @override
-  void didUpdateWidget(covariant SignalBuilderMany<N, R> oldWidget) {
+  void didUpdateWidget(covariant SignalBuilderMany<R> oldWidget) {
     super.didUpdateWidget(oldWidget);
     _subscribe();
   }
 
   void _subscribe() {
     _cancelSubscriptions();
-    final node = context.findNode<N>();
-    _subscriptions = widget
-        .signals(node)
+    _subscriptions = widget.signals
         .map(
           (s) => s.stream.listen((_) {
             if (mounted) {
@@ -179,21 +169,19 @@ class _SignalBuilderManyState<N extends NodeInterface<R>, R>
 
   @override
   Widget build(BuildContext context) {
-    final node = context.findNode<N>();
-
     assert(
-      widget.signals(node).every((s) => node.isSignalRegistered(s)),
+      widget.signals.every((s) => s.attachedNode.isSignalRegistered(s)),
       'One or more signals are not registered. Use [registerSignal].',
     );
 
-    return widget.builder(context, node.readable as R);
+    return widget.builder(
+      context,
+      widget.signals.first.attachedNode.readable as R,
+    );
   }
 }
 
-void _initFutures<N extends NodeInterface, S>(
-  Node node,
-  Set<BaseSignal<S>> signals,
-) {
+void _initFutures<S>(Set<BaseSignal<S>> signals) {
   for (var signal in signals) {
     if (signal is FutureSignal) {
       (signal as FutureSignal).fetch();

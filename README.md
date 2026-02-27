@@ -10,8 +10,9 @@ class CounterNode extends NodeInterface {
 }
 
 // 2. Build UI
+final node = context.findNode<CounterNode>();
 SignalBuilder(
-  signal: (node) => node.count,
+  signal: node.count,
   builder: (context, value) => Text('$value'),
 )
 ```
@@ -34,7 +35,7 @@ Trinity is a robust state management package for Flutter that implements a node-
 1. Add to pubspec:
 ```yaml
 dependencies:
-  trinity: ^0.1.4
+  trinity: ^0.1.7
 ```
 
 2. Wrap your app:
@@ -86,7 +87,7 @@ Create a custom node by extending `NodeInterface`. Define your state using `Sign
 import 'package:trinity/trinity.dart';
 
 class CounterNode extends NodeInterface {
-  // Private mutable signal
+  // Mutable signal
   late final count = registerSignal(Signal<int>(0));
 
   void increment() {
@@ -120,8 +121,9 @@ class MainApp extends StatelessWidget {
 ```
 
 > **Note**: simpler usage `NodeProvider(create: () => MyNode(), child: ...)`
-> 
+> - Use `NodeProvider.builder` to provide a node and a builder at once.
 > - Use `NodeProvider.many` to provide multiple nodes at once.
+> - Use `NodeProvider.reuse` to reuse a node if it already exists in the scope.
 
 ### 3. Consume the Node
 
@@ -143,8 +145,8 @@ class HomePage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text('You have pushed the button this many times:'),
-          SignalBuilder<CounterNode, int>(
-            signal: (node) => node.count,
+          SignalBuilder(
+            signal: node.count,
             builder: (context, value) {
               return Text(
                 '$value',
@@ -166,8 +168,8 @@ class HomePage extends StatelessWidget {
 You can use `SignalListener` or `SignalListenerMany` to listen to signal changes and perform side effects.
 
 ```dart
-SignalListener<CounterNode, int>(
-  signal: (node) => node.count,
+SignalListener(
+  signal: node.count,
   listener: (previous, current) {
     print('Count changed from $previous to $current');
   },
@@ -204,13 +206,13 @@ class OrdersNode extends NodeInterface<ReadableOrdersNode> {
 
 ```dart
 // home_page.dart
-SignalBuilderMany<OrdersNode, ReadableOrdersNode>(
-  signals: (node) => {node.orders, node.user},
+final node = context.findNode<OrdersNode>();
+SignalBuilderMany<ReadableOrdersNode>(
+  signals: {node.orders, node.user},
   builder: (context, reader) {
     // reader is the generated class that exposes values directly
     // This is type-safe and updates only when specific signals change
-    final orders = reader.orders;
-    final user = reader.user;
+    final (orders, user) = (reader.orders, reader.user);
     
     return Text('User: ${user.name}, Orders: ${orders.length}');
   },
@@ -237,7 +239,7 @@ Listening to loading states in the UI:
 
 ```dart
 SignalBuilder(
-  signal: (DataNode node) => node.isLoading,
+  signal: node.isLoading,
   builder: (context, isLoading) {
     if (isLoading) {
       return const CircularProgressIndicator();
@@ -266,11 +268,11 @@ class DataNode extends NodeInterface {
 In the UI:
 
 ```dart
-SignalBuilder<DataNode, AsyncValue<User>>(
-  signal: (node) => node.userSignal,
+SignalBuilder(
+  signal: node.userSignal,
   builder: (context, state) {
     return state.when(
-      builder: (value) => Text(value?.name ?? 'No data'),
+      builder: (data) => Text(data.value?.name ?? 'No data'),
       loading: () => const CircularProgressIndicator(),
       error: (error) => Text('Error: $error'),
     );
@@ -291,8 +293,8 @@ class DataNode extends NodeInterface {
 In the UI:
 
 ```dart
-SignalBuilder<DataNode, List<Message>>?(
-  signal: (node) => node.messages,
+SignalBuilder(
+  signal: node.messages,
   builder: (context, messages) {
     return messages==null
       ? const CircularProgressIndicator()

@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:trinity/trinity.dart';
 
 /// Internal base class containing the "raw" state and stream logic.
 /// Signal extends this, but ReadableSignal only wraps it.
 abstract class BaseSignal<T> {
   T _value;
   final controller = StreamController<T>.broadcast();
+
+  late final Node attachedNode;
 
   BaseSignal(this._value);
 

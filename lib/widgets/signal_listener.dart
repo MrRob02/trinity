@@ -3,20 +3,20 @@ import 'package:trinity/models/base_signal.dart';
 import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
 
-class SignalListener<N extends NodeInterface, S> extends StatefulWidget {
+class SignalListener<S> extends StatefulWidget {
   ///You can choose any Node that is an ancestor of the current widget.
   ///No matter how far away it is, just make it explicit like this:
   ///
   ///```dart
   ///SignalListener(
-  ///  signal: (YourNode node) => node.yourSignal,
+  ///  signal: node.yourSignal,
   ///  listener: (previousValue, newValue) {
   ///    print(newValue);
   ///  },
   ///  child: Text('Hello World'),
   ///)
   ///```
-  final BaseSignal<S> Function(N) signal;
+  final BaseSignal<S> signal;
   final Function(S previousValue, S newValue)? listener;
   final Widget child;
 
@@ -28,17 +28,15 @@ class SignalListener<N extends NodeInterface, S> extends StatefulWidget {
   });
 
   @override
-  State<SignalListener<N, S>> createState() => _SignalListenerState<N, S>();
+  State<SignalListener<S>> createState() => _SignalListenerState<S>();
 }
 
-class _SignalListenerState<N extends NodeInterface, S>
-    extends State<SignalListener<N, S>> {
+class _SignalListenerState<S> extends State<SignalListener<S>> {
   @override
   Widget build(BuildContext context) {
-    final node = context.findNode<N>();
-    final signal = widget.signal(node);
+    final node = widget.signal.attachedNode;
 
-    assert(node.isSignalRegistered(signal), '''
+    assert(node.isSignalRegistered(widget.signal), '''
       Signal is not registered
       This might be because you created the signals directly instead of using [registerSignal]
       In order to fix this, you need to use [registerSignal] to register your signals.
@@ -55,7 +53,7 @@ class _SignalListenerState<N extends NodeInterface, S>
 }
 
 class SignalListenerMany<N extends NodeInterface<R>, R> extends StatefulWidget {
-  final Set<BaseSignal> Function(N) signals;
+  final Set<BaseSignal> signals;
   final Widget child;
   final Function()? listener;
 
@@ -85,7 +83,7 @@ class _SignalListenerManyState<N extends NodeInterface<R>, R>
     final node = context.findNode<N>();
 
     assert(
-      widget.signals(node).every((s) => node.isSignalRegistered(s)),
+      widget.signals.every((s) => node.isSignalRegistered(s)),
       'One or more signals are not registered. Use [registerSignal].',
     );
 

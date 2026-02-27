@@ -5,14 +5,14 @@ import 'package:trinity/node_anatomy.dart';
 
 ///You can use this class to add loading and error states to your nodes
 ///```dart
-/// ReadableSignal<bool> isLoading
+/// Signal<bool> isLoading
 ///
-/// ReadableSignal<Object?> error
+/// NullableSignal<Object> error
 ///
 /// //A separate signal for full screen loading
-/// ReadableSignal<bool> fullScreenLoading
+/// Signal<bool> fullScreenLoading
 ///
-/// //You can use the [loading] method to wrap any async operation
+/// //You can use the `loading` method to wrap any async operation
 /// //so you don't have to handle the loading state yourself
 /// Future<T> loading<T>(
 ///    Future<T> future, {
@@ -70,5 +70,9 @@ abstract class NodeInterface<R> extends Node {
       return error(this.error.value!);
     }
     return orElse();
+  }
+
+  void clearError() {
+    error.value = null;
   }
 }
