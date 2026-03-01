@@ -17,7 +17,7 @@ SignalBuilder(
 )
 ```
 
-**That's it.** No streams, no builders, no boilerplate.
+**That's it.** No streams, no boilerplate.
 
 Trinity is a robust state management package for Flutter that implements a node-based architecture using reactive signals. It provides a structured way to separate business logic from UI code, ensuring modularity, testability, and efficient implementation of reactive patterns.
 
