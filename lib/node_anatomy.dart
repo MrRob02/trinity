@@ -6,32 +6,37 @@ import 'package:trinity/node_interface.dart';
 // ─────────────────────────────────────────────
 
 class NodeRegistry {
-  final Map<Type, Node> _nodes = {};
+  final Map<Key, Node> _nodes = {};
 
   void register<N extends Node>(N node) {
-    final key = node.runtimeType;
+    final key = node.runtimeKey;
     assert(
       !_nodes.containsKey(key),
       'Node of type $key already exists in this scope.\n\n'
       'Solutions:\n'
-      '1. Use context.findNode<YourNode>().\n'
-      '2. Use a nested TrinityScope if you need a separate instance.\n'
-      '3. Use NodeProvider.reuse\n',
+      '1. Find the anscestor node using [context.findNode<YourNode>()].\n'
+      '2. Force creation by adding a key to your node using [key] parameter in constructor.\n'
+      '3. Create a new node or use the existing one by using [NodeProvider.reuse].\n',
     );
     _nodes[key] = node;
     node.onInit();
   }
 
-  void unregister<N extends Node>(N node) {
-    _nodes.remove(node.runtimeType);
+  void dispose<N extends Node>(N node) {
+    _nodes.remove(node.runtimeKey);
     node.dispose();
   }
 
   /// Looks up a node by type compatibility (supports interfaces).
-  N? getOrNull<N extends Node>() {
+  N? getOrNull<N extends Node>({Key? key}) {
+    if (key != null) {
+      final exact = getByKey(key);
+      if (exact is N) return exact;
+      return null;
+    }
     // Exact match first
-    final exact = _nodes[N];
-    if (exact != null) return exact as N;
+    final exact = _nodes[Key(N.toString())];
+    if (exact is N) return exact;
     // Subtype match (e.g. find ProductsNode via CatalogueControllerInterface)
     for (final node in _nodes.values) {
       if (node is N) return node;
@@ -40,7 +45,10 @@ class NodeRegistry {
   }
 
   /// Checks if a node with this exact [runtimeType] already exists.
-  Node? getByRuntimeType(Type type) => _nodes[type];
+  Node? getByRuntimeType(Type type) => _nodes[Key(type.toString())];
+
+  /// Checks if a node with this exact [runtimeKey] already exists.
+  Node? getByKey(Key key) => _nodes[key];
 
   void disposeAll() {
     for (final node in _nodes.values) {
@@ -74,16 +82,16 @@ class InheritedTrinityScope extends InheritedWidget {
   }
 
   /// Busca N desde el scope más cercano hacia arriba
-  N find<N extends NodeInterface>(BuildContext context) {
-    final node = registry.getOrNull<N>();
+  N find<N extends NodeInterface>(BuildContext context, {Key? key}) {
+    final node = registry.getOrNull<N>(key: key);
     if (node != null) return node;
 
     // Sube al siguiente scope
     final parent = _findParentScope(context);
-    if (parent != null) return parent.find<N>(context);
+    if (parent != null) return parent.find<N>(context, key: key);
 
     throw FlutterError(
-      'Node of type $N not found in any TrinityScope.\n'
+      'Node of type $N ${key != null ? 'with key $key ' : ''}not found in any TrinityScope.\n'
       'Make sure to register it with a NodeProvider.',
     );
   }
@@ -105,14 +113,14 @@ class InheritedTrinityScope extends InheritedWidget {
   bool updateShouldNotify(InheritedTrinityScope old) => false;
 
   // Dentro de TrinityScope
-  N findByType<N extends NodeInterface>() {
-    final node = registry.getOrNull<N>();
+  N findByType<N extends NodeInterface>({Key? key}) {
+    final node = registry.getOrNull<N>(key: key);
     if (node != null) return node;
 
     // Sube al scope padre si existe
     // Como el scope es global único por ahora, esto simplemente falla
     throw FlutterError(
-      'Node of type $N not found in the TrinityScope.\n'
+      'Node of type $N ${key != null ? 'with key $key ' : ''}not found in the TrinityScope.\n'
       'Make sure to register it with a NodeProvider.',
     );
   }
@@ -122,8 +130,8 @@ class InheritedTrinityScope extends InheritedWidget {
 // ─────────────────────────────────────────────
 
 extension TrinityContextExtension on BuildContext {
-  N findNode<N extends NodeInterface>() =>
-      InheritedTrinityScope.of(this).find<N>(this);
-  N? findNodeOrNull<N extends NodeInterface>() =>
-      InheritedTrinityScope.of(this).registry.getOrNull<N>();
+  N findNode<N extends NodeInterface>({Key? key}) =>
+      InheritedTrinityScope.of(this).find<N>(this, key: key);
+  N? findNodeOrNull<N extends NodeInterface>({Key? key}) =>
+      InheritedTrinityScope.of(this).registry.getOrNull<N>(key: key);
 }

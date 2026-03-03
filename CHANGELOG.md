@@ -1,7 +1,10 @@
 
+## 0.2.0
+* Added `NodeProvider.reuse()` constructor
+* Fix docs
+
 ## 0.1.7
 * Remove function bulder for `(node)=>node.mySignal` in SignalBuilder and SignalBuilderMany
-* Added `NodeProvider.reuse()` constructor
 
 ## 0.1.6
 * Added `SignalListener` and `SignalListenerMany` widgets.

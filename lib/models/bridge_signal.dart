@@ -79,13 +79,13 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
   late final N _parentNode;
 
   final Signal<S> Function(N node) _select;
-  final V? Function(S value)? _transform;
-  final void Function(N node, V? value) _update;
+  final V Function(S value) _transform;
+  final void Function(N node, V? value)? _update;
 
   TransformBridgeSignal({
-    required Signal<S> Function(N) select,
-    required V? Function(S)? transform,
-    required void Function(N, V?) update,
+    required Signal<S> Function(N node) select,
+    required V Function(S value) transform,
+    void Function(N node, V? value)? update,
   }) : _select = select,
        _transform = transform,
        _update = update,
@@ -93,7 +93,8 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
 
   @override
   set value(V? newValue) {
-    _update(_parentNode, newValue);
+    assert(_update != null, 'You didn\'t provide an update function');
+    _update?.call(_parentNode, newValue);
   }
 
   @override
@@ -101,12 +102,12 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
   void connect(InheritedTrinityScope scope) {
     final node = _parentNode = scope.findByType<N>();
     final parentSignal = _select(node);
-    final initialValue = _transform?.call(parentSignal.value);
+    final initialValue = _transform(parentSignal.value);
 
     emit(initialValue);
 
     _subscription = parentSignal.streamTriggerImmediatly.listen((data) {
-      final transformed = _transform?.call(data);
+      final transformed = _transform(data);
       emit(transformed);
     });
   }

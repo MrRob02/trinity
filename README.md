@@ -35,7 +35,7 @@ Trinity is a robust state management package for Flutter that implements a node-
 1. Add to pubspec:
 ```yaml
 dependencies:
-  trinity: ^0.1.7
+  trinity: ^0.2.0
 ```
 
 2. Wrap your app:

@@ -26,6 +26,8 @@ abstract class NodeInterface<R> extends Node {
   late final fullScreenLoading = registerSignal(Signal<bool>(false));
   late final error = registerSignal(NullableSignal<Object>());
 
+  NodeInterface({super.key});
+
   static N of<N extends NodeInterface>(BuildContext context) {
     return context.findNode<N>();
   }

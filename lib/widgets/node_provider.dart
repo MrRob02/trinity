@@ -22,9 +22,29 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
       reuse = false;
 
   ///If the node you want to use might be created in a parent scope
-  ///use this constructor.
+  ///but you don't want to recreate it,use this constructor.
   ///
-  ///If node exists, it won't be recreated.
+  ///If node does not exist, it will be created.
+  ///
+  ///**❌ Don't do this:**
+  ///
+  ///```dart
+  ///final yourNode = YourNode();
+  ///NodeProvider.reuse(
+  ///  create: () => yourNode,
+  ///  builder: (context, node) => MyWidget(node: yourNode),
+  ///);
+  ///```
+  ///The node returned by the builder might not be the one you created.
+  ///
+  ///**✅ Do this:**
+  ///
+  ///```dart
+  ///NodeProvider.reuse(
+  ///  create: () => YourNode(),
+  ///  builder: (context, node) => MyWidget(node: node),
+  ///);
+  ///```
   NodeProvider.reuse({
     super.key,
     required N Function() create,
@@ -64,21 +84,23 @@ class NodeProviderState<N extends NodeInterface>
     _registry = scope.registry;
 
     // Siempre creamos el nodo para conocer su runtimeType concreto
-    _nodes = widget.nodes.map((factory) => factory()).toList();
+    final createdNodes = widget.nodes.map((factory) => factory()).toList();
+    final resolvedNodes = <N>[];
 
-    for (final node in _nodes!) {
+    for (final node in createdNodes) {
       if (widget.reuse) {
-        // Busca si ya existe un nodo con el mismo tipo concreto
-        final existing = _registry!.getByRuntimeType(node.runtimeType);
+        // Busca si ya existe un nodo con su key especifica (genérica o personalizada)
+        final existing = _registry!.getByKey(node.runtimeKey);
         if (existing != null && existing is N) {
-          // Ya existe el mismo tipo concreto → reutilizar
-          _nodes = [existing];
+          // Ya existe el mismo nodo → reutilizar
+          resolvedNodes.add(existing);
           _shouldDispose[existing] = false;
-          return;
+          continue;
         }
       }
 
       // No existe (o no es reuse) → registrar
+      resolvedNodes.add(node);
       _shouldDispose[node] = true;
       node.attach(scope);
       _registry!.register<N>(node);
@@ -86,14 +108,15 @@ class NodeProviderState<N extends NodeInterface>
         node.onReady();
       });
     }
+
+    _nodes = resolvedNodes;
   }
 
   @override
   void dispose() {
     for (final node in _nodes ?? []) {
       if (_shouldDispose[node] == true) {
-        node.dispose();
-        _registry?.unregister<N>(node); // ← llama onDispose internamente
+        _registry?.dispose<N>(node); // ← llama onDispose internamente
       }
     }
     super.dispose();

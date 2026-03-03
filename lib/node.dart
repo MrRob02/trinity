@@ -40,6 +40,11 @@ abstract class Node {
     return true;
   }
 
+  final Key? key;
+  @protected
+  Key get runtimeKey {
+    return key ?? Key(runtimeType.toString());
+  }
   //*
   // // API pública para buscar otros Nodes desde dentro del Node
   // N _findNode<N extends Node>() {
@@ -49,6 +54,8 @@ abstract class Node {
 
   final List<BaseBridgeSignal> _bridges = [];
   final List<BaseSignal> _signals = [];
+
+  Node({required this.key});
 
   @protected
   void registerManyBridges(List<BaseBridgeSignal> bridges) {
@@ -114,4 +121,6 @@ abstract class Node {
   ///```
   @protected
   dynamic get readable => null;
+
+  bool get initialized => _initialized;
 }

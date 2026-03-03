@@ -84,7 +84,10 @@ class _SignalBuilderState<S> extends State<SignalBuilder<S>> {
   @override
   Widget build(BuildContext context) {
     final node = widget.signal.attachedNode;
-
+    assert(
+      node.initialized,
+      'The node ${node.runtimeType} is not initialized. Use [NodeProvider] to provide the node to the scope.',
+    );
     assert(node.isSignalRegistered(widget.signal), '''
       Signal is not registered
       This might be because you created the signals directly instead of using [registerSignal]
@@ -169,6 +172,10 @@ class _SignalBuilderManyState<R> extends State<SignalBuilderMany<R>> {
 
   @override
   Widget build(BuildContext context) {
+    assert(
+      widget.signals.every((s) => s.attachedNode.initialized),
+      'One or more nodes are not initialized. Use [NodeProvider] to provide the node to the scope.',
+    );
     assert(
       widget.signals.every((s) => s.attachedNode.isSignalRegistered(s)),
       'One or more signals are not registered. Use [registerSignal].',
