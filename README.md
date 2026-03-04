@@ -308,6 +308,30 @@ SignalBuilder(
 );
 ```
 
+### ComputedSignal
+
+`ComputedSignal` allows you to create a signal whose value is derived from another signal on the same node.
+
+```dart
+class DataNode extends NodeInterface {
+  late final messages = registerSignal(StreamSignal(repository.messagesStream()));
+  late final unreadMessages = registerSignal(ComputedSignal(messages, (messages) => messages.where((message) => !message.isRead).length));
+}
+```
+
+In the UI:
+
+```dart
+SignalBuilder(
+  signal: node.unreadMessages,
+  builder: (context, unreadMessages) {
+    return Text(unreadMessages.toString());
+  },
+);
+```
+
+You can see it as a getter that handles its own state on the UI.
+
 ## Additional information
 
 - **Node Lifecycle**: Nodes have `onInit`, `onReady`, and `onDispose` methods that you can override to hook into their lifecycle.
@@ -396,7 +420,9 @@ class DetailNode extends NodeInterface {
 }
 ```
 
-You can also use `BridgeSignal` if you don't need to transform the data.
+The ```update``` property is optional, if you don't want your bridges to update the parent node, you can remove it. An ```Exception``` will be thrown if you try to update a signal with ```mySignal.value = newValue``` that doesn't have an ```update``` function.
+
+You can also use `BridgeSignal` if you don't need to transform the data. ```update``` is allowed by default.
 
 ```dart
 late final ordersBridge = registerSignal(

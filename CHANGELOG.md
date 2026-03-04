@@ -1,7 +1,10 @@
 
+## 0.2.1
+* Added `ComputedSignal` as a read-only signal whose value is derived from another signal.
+
 ## 0.2.0
-* Added `NodeProvider.reuse()` constructor
-* Fix docs
+* Added `NodeProvider.reuse()` constructor.
+* Fix docs.
 
 ## 0.1.7
 * Remove function bulder for `(node)=>node.mySignal` in SignalBuilder and SignalBuilderMany

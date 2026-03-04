@@ -4,6 +4,7 @@ import 'package:trinity/models/async_value.dart';
 import 'package:trinity/models/base_signal.dart';
 part 'future_signal.dart';
 part 'stream_signal.dart';
+part 'computed_signal.dart';
 
 /// This class is just a read-only "view".
 /// It does NOT extend BaseSignal to avoid inheriting internal behaviors,
