@@ -3,7 +3,6 @@
 // ─────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import 'package:trinity/models/base_signal.dart';
 import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
 
