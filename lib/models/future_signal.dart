@@ -7,14 +7,16 @@ class FutureSignal<T> extends Signal<AsyncData<T>> {
   // bool get isLoading => value is AsyncLoading;
   // bool get isError => value is AsyncError;
   // bool get hasData => value.hasValue;
-  Future<void> fetch() async {
+  Future<T?> fetch() async {
     _emit(const AsyncLoading());
     try {
       final data = await _future;
       _emit(AsyncData(data));
+      return data;
     } catch (e, st) {
       _emit(AsyncError(e, st));
     }
+    return null;
   }
 
   void _emit(AsyncData<T> newValue) {

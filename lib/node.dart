@@ -58,16 +58,6 @@ abstract class Node {
   Node({required this.key});
 
   @protected
-  void registerManyBridges(List<BaseBridgeSignal> bridges) {
-    _bridges.addAll(bridges);
-    if (_initialized) {
-      for (final bridge in bridges) {
-        bridge.connect(_scope);
-      }
-    }
-  }
-
-  @protected
   S registerSignal<S extends BaseSignal>(S signal) {
     if (signal is BaseBridgeSignal) {
       _bridges.add(signal);

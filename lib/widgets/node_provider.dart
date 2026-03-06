@@ -3,8 +3,9 @@
 // ─────────────────────────────────────────────
 
 import 'package:flutter/material.dart';
-import 'package:trinity/node_interface.dart';
+import 'package:trinity/models/base_signal.dart';
 import 'package:trinity/node_anatomy.dart';
+import 'package:trinity/trinity.dart';
 
 class NodeProvider<N extends NodeInterface> extends StatefulWidget {
   final List<N Function()> nodes;
@@ -120,6 +121,11 @@ class NodeProviderState<N extends NodeInterface>
       }
     }
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
