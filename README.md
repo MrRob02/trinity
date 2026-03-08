@@ -58,7 +58,7 @@ Trinity was born from the necessity to simplify code while ensuring robustness. 
 | Feature | BLoC | Riverpod | GetX | Trinity |
 |---------|------|----------|------|---------|
 | Global scope | ✅ | ✅ | ✅ | ✅ |
-| Auto dispose | ❌ | ⚠️ | ❌ | ✅ |
+| Auto dispose | ✅ | ⚠️ | ❌ | ✅ |
 | No magic | ✅ | ✅ | ❌ | ✅ |
 | Cross-node signals | ❌ | ⚠️ | ✅ | ✅ (BridgeSignal) |
 | Learning curve | High | Medium | Low | Low |
