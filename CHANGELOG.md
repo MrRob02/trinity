@@ -1,3 +1,5 @@
+## 0.3.0
+* Changed SignalListenerMany to receive `List<SignalListenerItem>` instead of a list of signals
 
 ## 0.2.1
 * Added `ComputedSignal` as a read-only signal whose value is derived from another signal.

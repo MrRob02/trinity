@@ -43,6 +43,7 @@ class Signal<T> extends BaseSignal<T> {
 
   set value(T newValue) => emit(newValue);
 
+  @protected
   void emit(T newValue) {
     if (unsafeValue == newValue) return; // Small optional optimization
     unsafeValue = newValue;
@@ -51,17 +52,8 @@ class Signal<T> extends BaseSignal<T> {
 }
 
 ///
-class NullableSignal<T> extends BaseSignal<T?> {
+class NullableSignal<T> extends Signal<T?> {
   NullableSignal([super.value]);
-
-  @protected
-  set value(T? newValue) => emit(newValue);
-
-  void emit(T? newValue) {
-    if (unsafeValue == newValue) return; // Small optional optimization
-    unsafeValue = newValue;
-    controller.add(newValue);
-  }
 
   /// This is the readable public exposed signal.
   /// It is created by the Signal constructor and is used to access the signal's value and stream.

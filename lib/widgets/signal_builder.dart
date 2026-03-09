@@ -20,12 +20,9 @@ class SignalBuilder<S> extends StatefulWidget {
   final Function(S previousValue, S newValue)? listener;
   final bool isListener;
 
-  const SignalBuilder({
-    super.key,
-    required this.signal,
-    required this.builder,
-    this.listener,
-  }) : isListener = false;
+  const SignalBuilder({super.key, required this.signal, required this.builder})
+    : isListener = false,
+      listener = null;
 
   ///Use `SignalListener` instead.
   ///
@@ -71,7 +68,7 @@ class _SignalBuilderState<S> extends State<SignalBuilder<S>> {
     _subscription = widget.signal.stream.listen((value) {
       widget.listener?.call(_previousValue as S, value);
       _previousValue = value;
-      if (mounted && !widget.isListener) setState(() {});
+      if (mounted) setState(() {});
     });
   }
 

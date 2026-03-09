@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:trinity/models/base_signal.dart';
-import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
 
 class SignalListener<S> extends StatefulWidget {
@@ -52,47 +51,61 @@ class _SignalListenerState<S> extends State<SignalListener<S>> {
   }
 }
 
-class SignalListenerMany<N extends NodeInterface<R>, R> extends StatefulWidget {
-  final Set<BaseSignal> signals;
-  final Widget child;
-  final Function()? listener;
+class SignalListenerItem {
+  final Widget Function(Widget child) _builder;
 
-  ///IMPORTANT!!
+  SignalListenerItem._({required Widget Function(Widget child) builder})
+      : _builder = builder;
+
+  static SignalListenerItem of<R>({
+    required BaseSignal<R> signal,
+    void Function(R previousValue, R newValue)? listener,
+  }) {
+    return SignalListenerItem._(
+      builder: (child) => SignalListener<R>(
+        signal: signal,
+        listener: listener,
+        child: child,
+      ),
+    );
+  }
+}
+
+class SignalListenerMany extends StatelessWidget {
+  final List<SignalListenerItem> listeners;
+  final Widget child;
+
+  ///Listens to multiple signals, each with its own typed callback.
   ///
-  ///Even though you have access to all signals in the node through the readable
-  ///the widget will only rebuild when one of the [signals] in the list changes.
+  ///Similar to MultiBlocListener, each [SignalListenerItem] independently
+  ///listens to its signal without affecting the others.
   ///
-  ///This widget was created for cases where you need to listen to many (more than 2) signals.
-  ///We strongly recommend you to use [SignalListener] instead if you only need to listen to one or two signals.
+  ///```dart
+  ///SignalListenerMany(
+  ///  listeners: [
+  ///    SignalListenerItem.of(
+  ///      signal: node.signalA,
+  ///      listener: (prev, next) { ... },
+  ///    ),
+  ///    SignalListenerItem.of(
+  ///      signal: node.signalB,
+  ///      listener: (prev, next) { ... },
+  ///    ),
+  ///  ],
+  ///  child: MyWidget(),
+  ///)
+  ///```
   const SignalListenerMany({
     super.key,
-    required this.signals,
+    required this.listeners,
     required this.child,
-    this.listener,
   });
 
   @override
-  State<SignalListenerMany<N, R>> createState() =>
-      _SignalListenerManyState<N, R>();
-}
-
-class _SignalListenerManyState<N extends NodeInterface<R>, R>
-    extends State<SignalListenerMany<N, R>> {
-  @override
   Widget build(BuildContext context) {
-    final node = context.findNode<N>();
-
-    assert(
-      widget.signals.every((s) => node.isSignalRegistered(s)),
-      'One or more signals are not registered. Use [registerSignal].',
-    );
-
-    return SignalBuilderMany(
-      signals: widget.signals,
-      listener: widget.listener,
-      builder: (_, _) {
-        return widget.child;
-      },
+    return listeners.reversed.fold(
+      child,
+      (child, item) => item._builder(child),
     );
   }
 }
