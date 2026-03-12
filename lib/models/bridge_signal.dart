@@ -8,6 +8,7 @@ import 'package:trinity/node_anatomy.dart';
 /// A bridge that mirrors a parent node's signal with no transformation.
 ///
 /// [N] is the parent node type where the source signal lives.
+///
 /// [S] is both the source signal type and the bridge's value type (V == S).
 ///
 /// The value setter writes directly back to the parent signal.
@@ -58,7 +59,9 @@ class BridgeSignal<N extends NodeInterface, V> extends BaseBridgeSignal<V> {
 /// A bridge that transforms a parent signal's value into a different type.
 ///
 /// [N] is the parent node type.
+///
 /// [S] is the source signal type.
+///
 /// [V] is the transformed value type (can differ from S, value is nullable).
 ///
 /// ```dart
