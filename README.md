@@ -314,8 +314,16 @@ SignalBuilder(
 
 ```dart
 class DataNode extends NodeInterface {
-  late final messages = registerSignal(StreamSignal(repository.messagesStream()));
-  late final unreadMessages = registerSignal(ComputedSignal(messages, (messages) => messages.where((message) => !message.isRead).length));
+  late final messages = registerSignal(
+    StreamSignal(repository.messagesStream()),
+  );
+  late final unreadMessages = registerSignal(
+    ComputedSignal(
+      source: messages,
+      transform: (messages) =>
+          messages.where((message) => !message.isRead).length,
+    ),
+  );
 }
 ```
 

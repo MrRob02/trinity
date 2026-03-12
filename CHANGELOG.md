@@ -1,3 +1,6 @@
+## 0.3.2
+* Fixed `ComputedSignal` and `ComputedSignalMany` to use named parameters instead of positional parameters.
+
 ## 0.3.1
 * Added `ComputedSignalMany` as a read-only signal whose value is derived from multiple signals.
 

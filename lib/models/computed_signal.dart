@@ -2,8 +2,8 @@ part of 'signal.dart';
 
 class ComputedSignal<T, V> extends Signal<V> {
   StreamSubscription<T>? _subscription;
-  final BaseSignal<T> _source;
-  final V Function(T) _transform;
+  final BaseSignal<T> source;
+  final V Function(T) transform;
 
   /// A read-only signal whose value is derived from another signal.
   ///
@@ -18,10 +18,10 @@ class ComputedSignal<T, V> extends Signal<V> {
   ///   )),
   /// );
   /// ```
-  ComputedSignal(this._source, this._transform)
-    : super(_transform(_source.value)) {
-    _subscription = _source.stream.listen((data) {
-      final newValue = _transform(data);
+  ComputedSignal({required this.source, required this.transform})
+    : super(transform(source.value)) {
+    _subscription = source.stream.listen((data) {
+      final newValue = transform(data);
       if (unsafeValue != newValue) {
         unsafeValue = newValue;
         controller.add(newValue);
@@ -38,8 +38,8 @@ class ComputedSignal<T, V> extends Signal<V> {
 
 class ComputedSignalMany<V> extends Signal<V> {
   final Set<StreamSubscription> _subscription = {};
-  final Set<BaseSignal> _source;
-  final V Function() _transform;
+  final Set<BaseSignal> source;
+  final V Function() transform;
 
   /// A read-only signal whose value is derived from a set of signals.
   ///
@@ -57,12 +57,13 @@ class ComputedSignalMany<V> extends Signal<V> {
   ///   ),
   /// );
   /// ```
-  ComputedSignalMany(this._source, this._transform) : super(_transform()) {
+  ComputedSignalMany({required this.source, required this.transform})
+    : super(transform()) {
     _subscription.addAll(
-      _source
+      source
           .map(
             (s) => s.stream.listen((data) {
-              final newValue = _transform();
+              final newValue = transform();
               if (unsafeValue != newValue) {
                 unsafeValue = newValue;
                 controller.add(newValue);
