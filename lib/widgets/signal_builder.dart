@@ -17,7 +17,7 @@ class SignalBuilder<S> extends StatefulWidget {
   ///```
   final BaseSignal<S> signal;
   final Widget Function(BuildContext context, S value) builder;
-  final Function(S previousValue, S newValue)? listener;
+  final Function(S previous, S current)? listener;
   final bool isListener;
 
   const SignalBuilder({super.key, required this.signal, required this.builder})

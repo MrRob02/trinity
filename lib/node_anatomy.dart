@@ -72,13 +72,13 @@ class InheritedTrinityScope extends InheritedWidget {
   });
 
   static InheritedTrinityScope of(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<InheritedTrinityScope>();
+    final element = context
+        .getElementForInheritedWidgetOfExactType<InheritedTrinityScope>();
     assert(
-      scope != null,
+      element != null,
       'Couldn\'t find a TrinityScope in the widget tree. Did you wrap your app with TrinityScope?',
     );
-    return scope!;
+    return element!.widget as InheritedTrinityScope;
   }
 
   /// Busca N desde el scope más cercano hacia arriba

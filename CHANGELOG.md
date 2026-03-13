@@ -1,3 +1,6 @@
+## 0.3.3
+* Fixed `findNode` to allow use on `initState()` method
+
 ## 0.3.2
 * Fixed `ComputedSignal` and `ComputedSignalMany` to use named parameters instead of positional parameters.
 

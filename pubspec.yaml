@@ -1,6 +1,6 @@
 name: trinity
 description: "A reactive state management library for Flutter, built around Signals and Nodes to simplify app logic and keep your UI in sync."
-version: 0.3.2
+version: 0.3.3
 homepage: https://github.com/MrRob02/trinity
 repository: https://github.com/MrRob02/trinity
 environment:
