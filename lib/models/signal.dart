@@ -36,6 +36,7 @@ class ReadableSignal<T> {
 
 class Signal<T> extends BaseSignal<T> {
   Signal(super.value);
+  Signal.deferred() : super.deferred();
 
   /// This is the readable public exposed signal.
   /// It is created by the Signal constructor and is used to access the signal's value and stream.
@@ -55,7 +56,8 @@ class Signal<T> extends BaseSignal<T> {
 class NullableSignal<T> extends Signal<T?> {
   NullableSignal([super.value]);
 
-  /// This is the readable public exposed signal.
-  /// It is created by the Signal constructor and is used to access the signal's value and stream.
-  late final ReadableSignal<T?> readable = ReadableSignal._(this);
+  R? use<R>(R Function(T value) builder) {
+    if (value == null) return null;
+    return builder(value as T);
+  }
 }

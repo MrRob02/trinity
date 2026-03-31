@@ -1,3 +1,7 @@
+## 0.3.4
+* Added `findNode` inside `Node` using `late`
+* Removed forced nullable when using `BridgeSignal`
+
 ## 0.3.3
 * Fixed `findNode` to allow use on `initState()` method
 

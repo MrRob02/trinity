@@ -235,6 +235,21 @@ class DataNode extends NodeInterface {
 }
 ```
 
+You also have a dedicated `findNode` function with the `Node` class to find other nodes in the tree.
+
+```dart
+class DataNode extends NodeInterface {
+  late final otherNode = findNode<OtherNode>();
+  Future<void> fetchData() async {
+    // Automatically sets isLoading to true, awaits the future,
+    // handles errors, and resets isLoading to false.
+    await loading(() async {
+      await someAsyncService.getData();
+    });
+  }
+}
+```
+
 Listening to loading states in the UI:
 
 ```dart

@@ -25,8 +25,7 @@ class BridgeSignal<N extends NodeInterface, V> extends BaseBridgeSignal<V> {
   final Signal<V> Function(N node) _select;
 
   BridgeSignal({required Signal<V> Function(N) select})
-    : _select = select,
-      super(null);
+    : _select = select;
 
   @override
   set value(covariant V newValue) {
@@ -83,19 +82,18 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
 
   final Signal<S> Function(N node) _select;
   final V Function(S value) _transform;
-  final void Function(N node, V? value)? _update;
+  final void Function(N node, V value)? _update;
 
   TransformBridgeSignal({
     required Signal<S> Function(N node) select,
     required V Function(S value) transform,
-    void Function(N node, V? value)? update,
+    void Function(N node, V value)? update,
   }) : _select = select,
        _transform = transform,
-       _update = update,
-       super(null);
+       _update = update;
 
   @override
-  set value(V? newValue) {
+  set value(covariant V newValue) {
     assert(_update != null, 'You didn\'t provide an update function');
     _update?.call(_parentNode, newValue);
   }

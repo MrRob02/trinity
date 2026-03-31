@@ -9,6 +9,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:trinity/models/base_bridge_signal.dart';
 import 'package:trinity/models/base_signal.dart';
+// import 'package:trinity/models/node_link.dart';
 import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
 
@@ -36,6 +37,9 @@ abstract class Node {
     for (final bridge in _bridges) {
       bridge.connect(scope); // busca el Node B y se suscribe
     }
+    for (final link in _links) {
+      link.connect(scope); // resuelve y vincula la referencia
+    }
     _initialized = true;
     return true;
   }
@@ -45,17 +49,28 @@ abstract class Node {
   Key get runtimeKey {
     return key ?? Key(runtimeType.toString());
   }
-  //*
-  // // API pública para buscar otros Nodes desde dentro del Node
-  // N _findNode<N extends Node>() {
-  //   assert(_initialized, 'No puedes llamar findNode antes de onReady.');
-  //   return _scope.findByType<N>();
-  // }
+
+  // API pública para buscar otros Nodes desde dentro del Node
+  @protected
+  N findNode<N extends NodeInterface>() {
+    assert(_initialized, 'No puedes llamar findNode antes de onInit.');
+    return _scope.findByType<N>();
+  }
 
   final List<BaseBridgeSignal> _bridges = [];
+  final List<_NodeLink> _links = [];
   final List<BaseSignal> _signals = [];
 
   Node({required this.key});
+
+  // @protected
+  // L _linkNode<L extends _NodeLink>(L link) {
+  //   _links.add(link);
+  //   if (_initialized) {
+  //     link.connect(_scope);
+  //   }
+  //   return link;
+  // }
 
   @protected
   S registerSignal<S extends BaseSignal>(S signal) {
@@ -113,4 +128,22 @@ abstract class Node {
   dynamic get readable => null;
 
   bool get initialized => _initialized;
+}
+
+/// A link to another node in the Trinity widget tree.
+/// It automatically resolves the selected node when the parent node connects.
+///
+/// ```dart
+/// late final userNode = linkNode(NodeLink<UserNode>());
+///
+/// void doSomething() {
+///   userNode.value.logout();
+/// }
+/// ```
+class _NodeLink<N extends NodeInterface> {
+  late final N value;
+
+  void connect(InheritedTrinityScope scope) {
+    value = scope.findByType<N>();
+  }
 }
