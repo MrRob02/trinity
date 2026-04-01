@@ -57,6 +57,11 @@ abstract class Node {
     return _scope.findByType<N>();
   }
 
+  N? findNodeOrNull<N extends NodeInterface>() {
+    assert(_initialized, 'No puedes llamar findNode antes de onInit.');
+    return _scope.findByTypeOrNull<N>();
+  }
+
   final List<BaseBridgeSignal> _bridges = [];
   final List<_NodeLink> _links = [];
   final List<BaseSignal> _signals = [];

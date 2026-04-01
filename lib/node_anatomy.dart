@@ -124,6 +124,10 @@ class InheritedTrinityScope extends InheritedWidget {
       'Make sure to register it with a NodeProvider.',
     );
   }
+
+  N? findByTypeOrNull<N extends NodeInterface>() {
+    return registry.getOrNull<N>();
+  }
 }
 // ─────────────────────────────────────────────
 // Extension para acceso limpio desde el contexto

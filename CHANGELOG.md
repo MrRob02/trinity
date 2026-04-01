@@ -1,3 +1,6 @@
+## 0.3.5
+* Added `findNodeOrNull` inside `Node` using `late`
+
 ## 0.3.4
 * Added `findNode` inside `Node` using `late`
 * Removed forced nullable when using `BridgeSignal`

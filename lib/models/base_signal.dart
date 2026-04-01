@@ -33,9 +33,12 @@ abstract class BaseSignal<T> {
 
   Stream<T> get stream => controller.stream;
 
-  Stream<T> get streamTriggerImmediatly => _isInitialized 
+  Stream<T> get streamTriggerImmediatly => _isInitialized
       ? controller.stream.startWith(_value)
       : controller.stream;
+
+  /// Returns true if this signal has already been disposed.
+  bool get isDisposed => controller.isClosed;
 
   @mustCallSuper
   void dispose() {
