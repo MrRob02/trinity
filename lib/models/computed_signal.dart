@@ -1,6 +1,6 @@
 part of 'signal.dart';
 
-class ComputedSignal<T, V> extends Signal<V> {
+class ComputedSignal<T, V> extends BaseSignal<V> {
   StreamSubscription<T>? _subscription;
   final BaseSignal<T> source;
   final V Function(T) transform;
