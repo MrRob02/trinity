@@ -1,3 +1,6 @@
+## 0.3.6
+* Fixed `ComputedSignal` to extend `BaseSignal` instead of `Signal`
+
 ## 0.3.5
 * Added `findNodeOrNull` inside `Node` using `late`
 
