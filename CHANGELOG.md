@@ -1,3 +1,6 @@
+## 0.3.7
+* Improve `NodeProvider` speed when disposing nodes.
+
 ## 0.3.6
 * Fixed `ComputedSignal` to extend `BaseSignal` instead of `Signal`
 

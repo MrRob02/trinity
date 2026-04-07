@@ -113,22 +113,19 @@ class NodeProviderState<N extends NodeInterface>
   }
 
   @override
-  void dispose() {
-    for (final node in _nodes ?? []) {
-      if (_shouldDispose[node] == true) {
-        _registry?.dispose<N>(node); // ← llama onDispose internamente
+  Widget build(BuildContext context) => PopScope(
+    onPopInvokedWithResult: (didPop, result) {
+      //* Se hace aqui porque el dispose tarda un buen rato en eliminarse
+      if (didPop) {
+        for (final node in _nodes ?? []) {
+          if (_shouldDispose[node] == true) {
+            _registry?.dispose<N>(node); // ← llama onDispose internamente
+          }
+        }
       }
-    }
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.builder != null
-      ? widget.builder!(context, _nodes!.first)
-      : widget.child!;
+    },
+    child: widget.builder != null
+        ? widget.builder!(context, _nodes!.first)
+        : widget.child!,
+  );
 }
