@@ -89,18 +89,18 @@ class NodeProviderState<N extends NodeInterface>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_registry != null) return; // ya inicializado
+    if (_registry != null) return; // already initialized
 
     final scope = InheritedTrinityScope.of(context);
     _registry = scope.registry;
 
-    // Siempre creamos el nodo para conocer su runtimeType concreto
+    // We always create the node to know its concrete runtimeType
     final createdNodes = widget.nodes.map((factory) => factory()).toList();
     final resolvedNodes = <N>[];
 
     for (final node in createdNodes) {
       if (widget.reuse) {
-        // Busca si ya existe un nodo con su key especifica (genérica o personalizada)
+        //Search for a node with the same key
         final existing = _registry!.getByKey(node.runtimeKey);
         if (existing != null && existing is N) {
           // Ya existe el mismo nodo → reutilizar
@@ -110,7 +110,7 @@ class NodeProviderState<N extends NodeInterface>
         }
       }
 
-      // No existe (o no es reuse) → registrar
+      // Node does not exist (or reuse is false) → register
       resolvedNodes.add(node);
       _shouldDispose[node] = true;
       node.attach(scope);
@@ -130,7 +130,7 @@ class NodeProviderState<N extends NodeInterface>
   @override
   Widget build(BuildContext context) => PopScope(
     onPopInvokedWithResult: (didPop, result) {
-      //* Se hace aqui porque el dispose tarda un buen rato en eliminarse
+      //* We do it here because the dispose takes a long time to be removed
       if (didPop) {
         for (final node in _nodes ?? []) {
           if (_shouldDispose[node] == true) {
