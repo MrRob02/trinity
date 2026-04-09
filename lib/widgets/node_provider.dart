@@ -84,6 +84,7 @@ class NodeProviderState<N extends NodeInterface>
     extends State<NodeProvider<N>> {
   List<N>? _nodes;
   final Map<N, bool> _shouldDispose = {};
+  bool _disposed = false;
   NodeRegistry? _registry;
 
   @override
@@ -127,16 +128,30 @@ class NodeProviderState<N extends NodeInterface>
     }
   }
 
+  void _disposeNodes() {
+    if (_disposed) return;
+    _disposed = true;
+    for (final node in _nodes ?? []) {
+      if (_shouldDispose[node] == true) {
+        _registry?.dispose<N>(node); // ← llama onDispose internamente
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // Safety net: covers pushReplacement, and any navigation
+    // that does NOT trigger PopScope.onPopInvokedWithResult.
+    _disposeNodes();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => PopScope(
     onPopInvokedWithResult: (didPop, result) {
       //* We do it here because the dispose takes a long time to be removed
       if (didPop) {
-        for (final node in _nodes ?? []) {
-          if (_shouldDispose[node] == true) {
-            _registry?.dispose<N>(node); // ← llama onDispose internamente
-          }
-        }
+        _disposeNodes();
       }
     },
     child: widget.builder != null
