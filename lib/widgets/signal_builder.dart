@@ -50,6 +50,7 @@ class _SignalBuilderState<S> extends State<SignalBuilder<S>> {
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
+      _previousValue = widget.signal.value;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _initFutures({widget.signal});
       });

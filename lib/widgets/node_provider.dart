@@ -26,6 +26,10 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
       reuse = false,
       onInit = null;
 
+  ///This callback will be triggered when the widget is created
+  ///No matter if the node is created or reused
+  final void Function(N node)? onInit;
+
   ///If the node you want to use might be created in a parent scope
   ///but you don't want to recreate it,use this constructor.
   ///
@@ -50,10 +54,6 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
   ///  builder: (context, node) => MyWidget(node: node),
   ///);
   ///```
-
-  ///This callback will be triggered when the widget is created
-  ///No matter if the node is created or reused
-  final Function(N node)? onInit;
   NodeProvider.reuse({
     super.key,
     required N Function() create,
