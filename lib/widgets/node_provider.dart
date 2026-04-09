@@ -13,13 +13,18 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
   final bool reuse;
 
   ///Use this widget to create a node and provide it to the widget tree
-  NodeProvider({super.key, required N Function() create, required this.child})
-    : builder = null,
-      nodes = [create],
-      reuse = false;
+  NodeProvider({
+    super.key,
+    required N Function() create,
+    required this.child,
+    this.onInit,
+  }) : builder = null,
+       nodes = [create],
+       reuse = false;
   const NodeProvider.many({super.key, required this.nodes, required this.child})
     : builder = null,
-      reuse = false;
+      reuse = false,
+      onInit = null;
 
   ///If the node you want to use might be created in a parent scope
   ///but you don't want to recreate it,use this constructor.
@@ -45,10 +50,15 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
   ///  builder: (context, node) => MyWidget(node: node),
   ///);
   ///```
+
+  ///This callback will be triggered when the widget is created
+  ///No matter if the node is created or reused
+  final Function(N node)? onInit;
   NodeProvider.reuse({
     super.key,
     required N Function() create,
     required this.builder,
+    this.onInit,
   }) : child = null,
        nodes = [create],
        reuse = true;
@@ -61,6 +71,7 @@ class NodeProvider<N extends NodeInterface> extends StatefulWidget {
     super.key,
     required N Function() create,
     required this.builder,
+    this.onInit,
   }) : child = null,
        reuse = false,
        nodes = [create];
@@ -110,6 +121,10 @@ class NodeProviderState<N extends NodeInterface>
     }
 
     _nodes = resolvedNodes;
+    //This will be called only once, only when there is only one node
+    if (widget.nodes.length == 1) {
+      widget.onInit?.call(_nodes!.first);
+    }
   }
 
   @override

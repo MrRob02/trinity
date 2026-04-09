@@ -1,6 +1,6 @@
 part of 'signal.dart';
 
-class FutureSignal<T> extends Signal<AsyncData<T>> {
+class FutureSignal<T> extends ProtectedSignal<AsyncData<T>> {
   final Future<T> _future;
 
   FutureSignal(this._future) : super(AsyncData.initial());

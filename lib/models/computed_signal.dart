@@ -36,7 +36,7 @@ class ComputedSignal<T, V> extends BaseSignal<V> {
   }
 }
 
-class ComputedSignalMany<V> extends Signal<V> {
+class ComputedSignalMany<V> extends BaseSignal<V> {
   final Set<StreamSubscription> _subscription = {};
   final Set<BaseSignal> source;
   final V Function() transform;

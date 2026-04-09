@@ -1,6 +1,6 @@
 part of 'signal.dart';
 
-class StreamSignal<T> extends Signal<T?> {
+class StreamSignal<T> extends ProtectedSignal<T?> {
   final Stream<T> _source;
   StreamSubscription<T>? _subscription;
 
@@ -20,6 +20,34 @@ class StreamSignal<T> extends Signal<T?> {
   }
 
   void _emit(T? newValue) {
+    value = newValue;
+    controller.add(newValue);
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+}
+
+class StreamSignalWithInitialValue<T> extends ProtectedSignal<T> {
+  final Stream<T> _source;
+  StreamSubscription<T>? _subscription;
+
+  StreamSignalWithInitialValue(this._source, {required T initialValue})
+    : super(initialValue) {
+    _listen();
+  }
+
+  T get rawValue => value;
+
+  void _listen() {
+    _subscription?.cancel();
+    _subscription = _source.listen((data) => _emit(data));
+  }
+
+  void _emit(T newValue) {
     value = newValue;
     controller.add(newValue);
   }

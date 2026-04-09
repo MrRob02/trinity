@@ -1,3 +1,8 @@
+## 0.3.8
+* Created `ProtectedSignal` as a signal that can be read from the outside, but can only be written to from the inside.
+* Created `StreamSignalWithInitialValue`
+* Added `onInit` callback to `NodeProvider` and `NodeProvider.reuse()`.
+
 ## 0.3.7
 * Improve `NodeProvider` speed when disposing nodes.
 
