@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:trinity/models/base_signal.dart';
+import 'package:trinity/signals/base_signal.dart';
 import 'package:trinity/trinity.dart';
 
 class SignalBuilder<S> extends StatefulWidget {

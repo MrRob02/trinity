@@ -6,10 +6,11 @@ export 'node.dart';
 export 'node_interface.dart';
 
 // Models
-export 'models/signal.dart';
+export 'signals/signal.dart';
 export 'models/async_value.dart';
-export 'models/bridge_signal.dart';
-export 'models/list_signal.dart';
+export 'signals/bridge_signal.dart';
+export 'signals/list_signal.dart';
+export 'signals/nullable_signal.dart';
 
 // Widgets
 export 'widgets/signal_builder.dart';

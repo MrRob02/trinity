@@ -1,3 +1,7 @@
+## 0.4.1
+* Added `BoolSignal`
+* Added `NullableListSignal`
+
 ## 0.4.0
 * Added `ListSignal` and `IterableSignal`
 

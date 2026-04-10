@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:trinity/models/async_value.dart';
-import 'package:trinity/models/base_signal.dart';
+import 'package:trinity/signals/base_signal.dart';
 part 'future_signal.dart';
 part 'stream_signal.dart';
 part 'computed_signal.dart';
 part 'protected_signal.dart';
+part 'bool_signal.dart';
 
 /// This class is just a read-only "view".
 /// It does NOT extend BaseSignal to avoid inheriting internal behaviors,
@@ -51,15 +52,5 @@ class Signal<T> extends BaseSignal<T> {
     if (unsafeValue == newValue) return; // Small optional optimization
     unsafeValue = newValue;
     controller.add(newValue);
-  }
-}
-
-///
-class NullableSignal<T> extends Signal<T?> {
-  NullableSignal([super.value]);
-
-  R? use<R>(R Function(T value) builder) {
-    if (value == null) return null;
-    return builder(value as T);
   }
 }

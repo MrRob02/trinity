@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trinity/models/base_signal.dart';
+import 'package:trinity/signals/base_signal.dart';
 import 'package:trinity/trinity.dart';
 
 class SignalListener<S> extends StatefulWidget {
@@ -55,18 +55,15 @@ class SignalListenerItem {
   final Widget Function(Widget child) _builder;
 
   SignalListenerItem._({required Widget Function(Widget child) builder})
-      : _builder = builder;
+    : _builder = builder;
 
   static SignalListenerItem of<R>({
     required BaseSignal<R> signal,
     void Function(R previousValue, R newValue)? listener,
   }) {
     return SignalListenerItem._(
-      builder: (child) => SignalListener<R>(
-        signal: signal,
-        listener: listener,
-        child: child,
-      ),
+      builder: (child) =>
+          SignalListener<R>(signal: signal, listener: listener, child: child),
     );
   }
 }

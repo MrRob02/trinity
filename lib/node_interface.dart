@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:trinity/models/signal.dart';
+import 'package:trinity/signals/signal.dart';
 import 'package:trinity/node.dart';
 import 'package:trinity/node_anatomy.dart';
+import 'package:trinity/signals/nullable_signal.dart';
 
 ///You can use this class to add loading and error states to your nodes
 ///```dart

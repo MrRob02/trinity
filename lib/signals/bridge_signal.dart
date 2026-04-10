@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:trinity/models/base_bridge_signal.dart';
-import 'package:trinity/models/signal.dart';
+import 'package:trinity/signals/base_bridge_signal.dart';
+import 'package:trinity/signals/signal.dart';
 import 'package:trinity/node_interface.dart';
 import 'package:trinity/node_anatomy.dart';
 
@@ -24,8 +24,7 @@ class BridgeSignal<N extends NodeInterface, V> extends BaseBridgeSignal<V> {
 
   final Signal<V> Function(N node) _select;
 
-  BridgeSignal({required Signal<V> Function(N) select})
-    : _select = select;
+  BridgeSignal({required Signal<V> Function(N) select}) : _select = select;
 
   @override
   set value(covariant V newValue) {

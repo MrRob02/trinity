@@ -7,8 +7,8 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:trinity/models/base_bridge_signal.dart';
-import 'package:trinity/models/base_signal.dart';
+import 'package:trinity/signals/base_bridge_signal.dart';
+import 'package:trinity/signals/base_signal.dart';
 // import 'package:trinity/models/node_link.dart';
 import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
@@ -57,8 +57,8 @@ abstract class Node {
     return _scope.findByType<N>();
   }
 
+  @protected
   N? findNodeOrNull<N extends NodeInterface>() {
-    assert(_initialized, 'No puedes llamar findNode antes de onInit.');
     return _scope.findByTypeOrNull<N>();
   }
 
@@ -67,15 +67,6 @@ abstract class Node {
   final List<BaseSignal> _signals = [];
 
   Node({required this.key});
-
-  // @protected
-  // L _linkNode<L extends _NodeLink>(L link) {
-  //   _links.add(link);
-  //   if (_initialized) {
-  //     link.connect(_scope);
-  //   }
-  //   return link;
-  // }
 
   @protected
   S registerSignal<S extends BaseSignal>(S signal) {
@@ -97,17 +88,17 @@ abstract class Node {
 
   // ── Ciclo de vida ──────────────────────────
 
-  /// Primer punto de entrada, el scope ya está disponible
+  ///First point of entry for the node, the scope is already available
   void onInit() {}
 
-  /// Después del primer frame, contexto de UI listo
+  /// After the first frame, the UI context is ready
   @protected
   void onReady() {}
 
-  /// Cuando el NodeProvider se desmonta
+  /// When the NodeProvider is disposed
   void onDispose() {}
 
-  /// Método interno llamado por el framework para limpiar recursos
+  /// Internal method called by the framework to clean up resources
   void dispose() {
     for (final bridge in _bridges) {
       bridge.dispose();
