@@ -196,7 +196,7 @@ part 'orders_node.readable.dart';
 
 @Readable()
 class OrdersNode extends NodeInterface<ReadableOrdersNode> {
-  late final orders = registerSignal(Signal<List<OrderModel>>([]));
+  late final orders = registerSignal(ListSignal<OrderModel>([]));
   late final user = registerSignal(Signal<User>(User.empty()));
 
   @override
