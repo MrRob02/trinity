@@ -1,6 +1,6 @@
 part of 'signal.dart';
 
-///A signal that can only be read from the outside, but can be written to from the inside.
+///A signal that can be read from the outside, but can only be modified from the inside.
 ///It is used to wrap signals that are not meant to be modified by the outside world.
 class ProtectedSignal<T> extends BaseSignal<T> {
   ProtectedSignal(super.value);

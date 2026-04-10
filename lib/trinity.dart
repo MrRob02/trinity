@@ -9,6 +9,7 @@ export 'node_interface.dart';
 export 'models/signal.dart';
 export 'models/async_value.dart';
 export 'models/bridge_signal.dart';
+export 'models/list_signal.dart';
 
 // Widgets
 export 'widgets/signal_builder.dart';

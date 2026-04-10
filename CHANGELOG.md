@@ -1,3 +1,6 @@
+## 0.4.0
+* Added `ListSignal` and `IterableSignal`
+
 ## 0.3.8
 * Created `ProtectedSignal` as a signal that can be read from the outside, but can only be written to from the inside.
 * Created `StreamSignalWithInitialValue`
