@@ -7,6 +7,26 @@ import 'package:trinity/node_interface.dart';
 
 class NodeRegistry {
   final Map<Key, Node> _nodes = {};
+  final Map<Key, int> _refCounts = {};
+
+  void retain(Node node) {
+    final key = node.runtimeKey;
+    _refCounts[key] = (_refCounts[key] ?? 0) + 1;
+  }
+
+  void release<N extends Node>(N node) {
+    final key = node.runtimeKey;
+    if (!_refCounts.containsKey(key)) return;
+    
+    final current = _refCounts[key]! - 1;
+    if (current <= 0) {
+      _refCounts.remove(key);
+      _nodes.remove(key);
+      node.dispose();
+    } else {
+      _refCounts[key] = current;
+    }
+  }
 
   void register<N extends Node>(N node) {
     final key = node.runtimeKey;
@@ -19,12 +39,8 @@ class NodeRegistry {
       '3. Create a new node or use the existing one by using [NodeProvider.reuse].\n',
     );
     _nodes[key] = node;
+    _refCounts[key] = 1;
     node.onInit();
-  }
-
-  void dispose<N extends Node>(N node) {
-    _nodes.remove(node.runtimeKey);
-    node.dispose();
   }
 
   /// Looks up a node by type compatibility (supports interfaces).

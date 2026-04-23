@@ -100,18 +100,19 @@ class NodeProviderState<N extends NodeInterface>
     final resolvedNodes = <N>[];
 
     for (final node in createdNodes) {
-      if (widget.reuse) {
-        //Search for a node with the same key
-        final existing = _registry!.getByKey(node.runtimeKey);
-        if (existing != null && existing is N) {
-          // Ya existe el mismo nodo → reutilizar
-          resolvedNodes.add(existing);
-          _shouldDispose[existing] = false;
-          continue;
-        }
+      final key = node.runtimeKey;
+      final existing = _registry!.getByKey(key);
+
+      if (existing != null && existing is N) {
+        // Automáticamente aplicamos reference counting si la misma Key existe.
+        // Esto salva al nodo de ser destruido en transiciones rápidas.
+        _registry!.retain(existing);
+        resolvedNodes.add(existing);
+        _shouldDispose[existing] = true;
+        continue;
       }
 
-      // Node does not exist (or reuse is false) → register
+      // Node does not exist → register
       resolvedNodes.add(node);
       _shouldDispose[node] = true;
       node.attach(scope);
@@ -133,7 +134,7 @@ class NodeProviderState<N extends NodeInterface>
     _disposed = true;
     for (final node in _nodes ?? []) {
       if (_shouldDispose[node] == true) {
-        _registry?.dispose<N>(node); // ← llama onDispose internamente
+        _registry?.release<N>(node); // ← decrements refCount, disposes if 0
       }
     }
   }
@@ -147,15 +148,9 @@ class NodeProviderState<N extends NodeInterface>
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    onPopInvokedWithResult: (didPop, result) {
-      //* We do it here because the dispose takes a long time to be removed
-      if (didPop) {
-        _disposeNodes();
-      }
-    },
-    child: widget.builder != null
+  Widget build(BuildContext context) {
+    return widget.builder != null
         ? widget.builder!(context, _nodes!.first)
-        : widget.child!,
-  );
+        : widget.child!;
+  }
 }

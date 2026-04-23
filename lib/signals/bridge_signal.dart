@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:trinity/signals/base_bridge_signal.dart';
+import 'package:trinity/signals/base_signal.dart';
 import 'package:trinity/signals/signal.dart';
 import 'package:trinity/node_interface.dart';
 import 'package:trinity/node_anatomy.dart';
@@ -79,12 +80,12 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
   StreamSubscription<S>? _subscription;
   late final N _parentNode;
 
-  final Signal<S> Function(N node) _select;
+  final BaseSignal<S> Function(N node) _select;
   final V Function(S value) _transform;
   final void Function(N node, V value)? _update;
 
   TransformBridgeSignal({
-    required Signal<S> Function(N node) select,
+    required BaseSignal<S> Function(N node) select,
     required V Function(S value) transform,
     void Function(N node, V value)? update,
   }) : _select = select,

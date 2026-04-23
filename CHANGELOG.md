@@ -1,3 +1,7 @@
+## 0.5.0
+* Changes in `NodeProvider` lifecycle.
+* Corrected `TransformBridgeSignal` to accept `BaseSignal` instead of `Signal`.
+
 ## 0.4.1
 * Added `BoolSignal`
 * Added `NullableListSignal`
