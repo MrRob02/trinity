@@ -1,3 +1,6 @@
+## 0.5.1
+* Improved hot reload support for `ComputedSignal` and `ComputedSignalMany`
+
 ## 0.5.0
 * Changes in `NodeProvider` lifecycle.
 * Corrected `TransformBridgeSignal` to accept `BaseSignal` instead of `Signal`.

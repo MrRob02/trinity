@@ -15,4 +15,7 @@ class BoolSignal extends Signal<bool> {
   void toggle() {
     value = !value;
   }
+
+  bool get isTrue => value;
+  bool get isFalse => !value;
 }

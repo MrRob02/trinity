@@ -21,13 +21,14 @@ class ComputedSignal<T, V> extends BaseSignal<V> {
   ComputedSignal({required this.source, required this.transform})
     : super(transform(source.value)) {
     _subscription = source.stream.listen((data) {
-      final newValue = transform(data);
-      if (unsafeValue != newValue) {
-        unsafeValue = newValue;
-        controller.add(newValue);
+      if (unsafeValue != value) {
+        unsafeValue = value;
+        controller.add(value);
       }
     });
   }
+  @override
+  V get value => transform(source.value);
 
   @override
   void dispose() {
@@ -63,16 +64,18 @@ class ComputedSignalMany<V> extends BaseSignal<V> {
       source
           .map(
             (s) => s.stream.listen((data) {
-              final newValue = transform();
-              if (unsafeValue != newValue) {
-                unsafeValue = newValue;
-                controller.add(newValue);
+              if (unsafeValue != value) {
+                unsafeValue = value;
+                controller.add(value);
               }
             }),
           )
           .toList(),
     );
   }
+
+  @override
+  V get value => transform();
 
   @override
   void dispose() {
