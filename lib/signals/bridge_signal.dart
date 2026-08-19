@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:trinity/signals/base_bridge_signal.dart';
 import 'package:trinity/signals/base_signal.dart';
 import 'package:trinity/signals/signal.dart';
 import 'package:trinity/node_interface.dart';
@@ -19,23 +18,19 @@ import 'package:trinity/node_anatomy.dart';
 ///   BridgeSignal(select: (FormNode node) => node.edad),
 /// );
 /// ```
-class BridgeSignal<N extends NodeInterface, V> extends BaseBridgeSignal<V> {
+class BridgeSignal<N extends NodeInterface, V> extends ProtectedSignal<V> {
   StreamSubscription<V>? _subscription;
   late final N _parentNode;
 
-  final Signal<V> Function(N node) _select;
+  final BaseSignal<V> Function(N node) _select;
 
-  BridgeSignal({required Signal<V> Function(N) select}) : _select = select;
-
-  @override
-  set value(covariant V newValue) {
-    _select(_parentNode).value = newValue;
-  }
+  BridgeSignal({required BaseSignal<V> Function(N) select})
+    : _select = select,
+      super.deferred();
 
   @override
   V get value => _select(_parentNode).value;
 
-  @override
   @protected
   void connect(InheritedTrinityScope scope) {
     final node = _parentNode = scope.findByType<N>();
@@ -76,13 +71,11 @@ class BridgeSignal<N extends NodeInterface, V> extends BaseBridgeSignal<V> {
 /// );
 /// ```
 class TransformBridgeSignal<N extends NodeInterface, S, V>
-    extends BaseBridgeSignal<V> {
+    extends ProtectedSignal<V> {
   StreamSubscription<S>? _subscription;
-  late final N _parentNode;
 
   final BaseSignal<S> Function(N node) _select;
   final V Function(S value) _transform;
-  final void Function(N node, V value)? _update;
 
   TransformBridgeSignal({
     required BaseSignal<S> Function(N node) select,
@@ -90,18 +83,11 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
     void Function(N node, V value)? update,
   }) : _select = select,
        _transform = transform,
-       _update = update;
+       super.deferred();
 
-  @override
-  set value(covariant V newValue) {
-    assert(_update != null, 'You didn\'t provide an update function');
-    _update?.call(_parentNode, newValue);
-  }
-
-  @override
   @protected
   void connect(InheritedTrinityScope scope) {
-    final node = _parentNode = scope.findByType<N>();
+    final node = scope.findByType<N>();
     final parentSignal = _select(node);
     final initialValue = _transform(parentSignal.value);
 

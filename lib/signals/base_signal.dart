@@ -6,7 +6,7 @@ import 'package:trinity/trinity.dart';
 
 /// Internal base class containing the "raw" state and stream logic.
 /// Signal extends this, but ReadableSignal only wraps it.
-abstract class BaseSignal<T> {
+abstract class BaseSignal<T> extends ChangeNotifier {
   late T _value;
   bool _isInitialized = false;
   final controller = StreamController<T>.broadcast();
@@ -41,9 +41,4 @@ abstract class BaseSignal<T> {
 
   /// Returns true if this signal has already been disposed.
   bool get isDisposed => controller.isClosed;
-
-  @mustCallSuper
-  void dispose() {
-    controller.close();
-  }
 }

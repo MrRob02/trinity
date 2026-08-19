@@ -28,6 +28,7 @@ abstract class Node {
   bool _initialized = false;
   // Llamado por NodeProvider al registrar
   ///Returns true if the node was previously initialized, false otherwise
+  @protected
   bool attach(InheritedTrinityScope scope) {
     assert(
       !_initialized,
