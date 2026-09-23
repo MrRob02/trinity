@@ -91,19 +91,32 @@ class _SignalBuilderState<S> extends State<SignalBuilder<S>> {
   }
 }
 
-class SignalBuilderMany<R> extends StatefulWidget {
+class ManySignalsBuilder<R> extends StatefulWidget {
   final Set<BaseSignal> signals;
   final Widget Function(BuildContext context, R readable)? readableBuilder;
   final Widget Function(BuildContext context)? builder;
   final Function()? listener;
-  const SignalBuilderMany({
+
+  ///Creates a `ManySignalsBuilder` for a given set of signals.
+  ///Use this constructor when you need to listen to a specific subset of signals
+  ///from a node or when you are working with signals that are not part of a node.
+  ///
+  ///If you need to listen to all signals in a node, use `ManySignalsBuilder.all`.
+  ///
+  ///If you need to listen to all signals in a node and have access to the node's readable,
+  ///use `ManySignalsBuilder.readable`.
+  const ManySignalsBuilder({
     super.key,
     required this.signals,
     required Widget Function(BuildContext context) this.builder,
     this.listener,
   }) : readableBuilder = null;
 
-  SignalBuilderMany.all({
+  ///Creates a `ManySignalsBuilder` for all the signals in a node.
+  ///
+  ///You can also use `ManySignalsBuilder.readable` to create a `ManySignalsBuilder` for a node
+  ///that provides access to all signals in the node through the readable.
+  ManySignalsBuilder.all({
     super.key,
     required Node node,
     required Widget Function(BuildContext context) this.builder,
@@ -114,11 +127,11 @@ class SignalBuilderMany<R> extends StatefulWidget {
   ///IMPORTANT!!
   ///
   ///Even though you have access to all signals in the node through the readable
-  ///the widget will only rebuild when one of the [signals] in the list changes.
+  ///the widget will only rebuild when one of the `signals` in the list changes.
   ///
   ///This widget was created for cases where you need to listen to many (more than 2) signals.
-  ///We strongly recommend you to use [SignalBuilder] instead if you only need to listen to one or two signals.
-  const SignalBuilderMany.readable({
+  ///We strongly recommend you to use `SignalBuilder` instead if you only need to listen to one or two signals.
+  const ManySignalsBuilder.readable({
     super.key,
     required this.signals,
     required Widget Function(BuildContext context, R readable) builder,
@@ -127,10 +140,10 @@ class SignalBuilderMany<R> extends StatefulWidget {
        builder = null;
 
   @override
-  State<SignalBuilderMany<R>> createState() => _SignalBuilderManyState<R>();
+  State<ManySignalsBuilder<R>> createState() => _ManySignalsBuilderState<R>();
 }
 
-class _SignalBuilderManyState<R> extends State<SignalBuilderMany<R>> {
+class _ManySignalsBuilderState<R> extends State<ManySignalsBuilder<R>> {
   List<StreamSubscription> _subscriptions = [];
   bool _initialized = false;
 
@@ -147,7 +160,7 @@ class _SignalBuilderManyState<R> extends State<SignalBuilderMany<R>> {
   }
 
   @override
-  void didUpdateWidget(covariant SignalBuilderMany<R> oldWidget) {
+  void didUpdateWidget(covariant ManySignalsBuilder<R> oldWidget) {
     super.didUpdateWidget(oldWidget);
     _subscribe();
   }
@@ -194,7 +207,7 @@ class _SignalBuilderManyState<R> extends State<SignalBuilderMany<R>> {
     }
     assert(
       widget.signals.isNotEmpty,
-      'Signals set cannot be empty in SignalBuilderMany.readable.',
+      'Signals set cannot be empty in ManySignalsBuilder.readable.',
     );
     return widget.readableBuilder!(
       context,
@@ -208,5 +221,35 @@ void _initFutures<S>(Set<BaseSignal<S>> signals) {
     if (signal is FutureSignal) {
       (signal as FutureSignal).fetch();
     }
+  }
+}
+
+@Deprecated('Use ManySignalsBuilder.readable instead')
+class SignalBuilderMany<R> extends StatelessWidget {
+  final Set<BaseSignal> signals;
+  final Widget Function(BuildContext context, R readable) builder;
+  final Function()? listener;
+
+  ///IMPORTANT!!
+  ///
+  ///Even though you have access to all signals in the node through the readable
+  ///the widget will only rebuild when one of the [signals] in the list changes.
+  ///
+  ///This widget was created for cases where you need to listen to many (more than 2) signals.
+  ///We strongly recommend you to use [SignalBuilder] instead if you only need to listen to one or two signals.
+  const SignalBuilderMany({
+    super.key,
+    required this.signals,
+    required this.builder,
+    this.listener,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ManySignalsBuilder<R>.readable(
+      signals: signals,
+      builder: builder,
+      listener: listener,
+    );
   }
 }

@@ -2,11 +2,12 @@
 * `Node` class now has a `signals` getter to access to all non-computed signals as **BaseSignal**.
 * `Node` class now has a `computedSignals` getter to access to all computed signals as **BaseSignal**.
 
-### BREAKING CHANGES
-* `SignalBuilderMany` is now splitted into three constructors:
-  * `SignalBuilderMany`: receives a set of signals and builds the widget.
-  * `SignalBuilderMany<R>.readable`: receives a set of **Signals** and builds the widget with readable **(R)** property.
-  * `SignalBuilderMany.all`: receives a node and builds the widget using all non-computed **Signals** from it.
+* Deprecated `SignalBuilderMany` in favor of `ManySignalsBuilder`.
+* `ManySignalsBuilder` provides three constructors:
+  * `ManySignalsBuilder`: receives a set of signals and builds the widget.
+  * `ManySignalsBuilder<R>.readable`: receives a set of **Signals** and builds the widget with readable **(R)** property.
+  * `ManySignalsBuilder.all`: receives a node and builds the widget using all non-computed **Signals** from it.
+* Deprecated `SignalListenerMany` in favor of `ManySignalsListener`.
 
 ## 1.0.0
 * First stable release.

@@ -165,7 +165,7 @@ class HomePage extends StatelessWidget {
 }
 ```
 
-You can use `SignalListener` or `SignalListenerMany` to listen to signal changes and perform side effects.
+You can use `SignalListener` or `ManySignalsListener` to listen to signal changes and perform side effects.
 
 ```dart
 SignalListener(
@@ -178,7 +178,7 @@ SignalListener(
 
 ## Advanced: Multiple Signals with Code Generation
 
-For large nodes with many signals, you can use `SignalBuilderMany` with generated readonly wrappers.
+For large nodes with many signals, you can use `ManySignalsBuilder` with generated readonly wrappers.
 
 > **IMPORTANT**: This feature requires code generation using `build_runner`.
 > 
@@ -207,7 +207,7 @@ class OrdersNode extends NodeInterface<ReadableOrdersNode> {
 ```dart
 // home_page.dart
 final node = context.findNode<OrdersNode>();
-SignalBuilderMany<ReadableOrdersNode>(
+ManySignalsBuilder<ReadableOrdersNode>.readable(
   signals: {node.orders, node.user},
   builder: (context, reader) {
     // reader is the generated class that exposes values directly

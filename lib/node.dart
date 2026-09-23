@@ -119,7 +119,7 @@ abstract class Node {
   ///This is the readable version of the node
   ///It is used to access the signals of the node directly by its value.
   ///
-  ///You will use it for the `ManySignalBuilder`
+  ///You will use it for the `ManySignalsBuilder`
   ///
   ///In order to use it you need to generate it with
   ///`build_runner` and the value should be

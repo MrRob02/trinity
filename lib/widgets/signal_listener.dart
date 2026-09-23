@@ -68,6 +68,46 @@ class SignalListenerItem {
   }
 }
 
+class ManySignalsListener extends StatelessWidget {
+  final List<SignalListenerItem> listeners;
+  final Widget child;
+
+  ///Listens to multiple signals, each with its own typed callback.
+  ///
+  ///Similar to MultiBlocListener, each [SignalListenerItem] independently
+  ///listens to its signal without affecting the others.
+  ///
+  ///```dart
+  ///ManySignalsListener(
+  ///  listeners: [
+  ///    SignalListenerItem.of(
+  ///      signal: node.signalA,
+  ///      listener: (prev, next) { ... },
+  ///    ),
+  ///    SignalListenerItem.of(
+  ///      signal: node.signalB,
+  ///      listener: (prev, next) { ... },
+  ///    ),
+  ///  ],
+  ///  child: MyWidget(),
+  ///)
+  ///```
+  const ManySignalsListener({
+    super.key,
+    required this.listeners,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return listeners.reversed.fold(
+      child,
+      (child, item) => item._builder(child),
+    );
+  }
+}
+
+@Deprecated('Use ManySignalsListener instead')
 class SignalListenerMany extends StatelessWidget {
   final List<SignalListenerItem> listeners;
   final Widget child;
@@ -100,9 +140,6 @@ class SignalListenerMany extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return listeners.reversed.fold(
-      child,
-      (child, item) => item._builder(child),
-    );
+    return ManySignalsListener(listeners: listeners, child: child);
   }
 }
