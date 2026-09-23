@@ -1,3 +1,13 @@
+## 2.0.0
+* `Node` class now has a `signals` getter to access to all non-computed signals as **BaseSignal**.
+* `Node` class now has a `computedSignals` getter to access to all computed signals as **BaseSignal**.
+
+### BREAKING CHANGES
+* `SignalBuilderMany` is now splitted into three constructors:
+  * `SignalBuilderMany`: receives a set of signals and builds the widget.
+  * `SignalBuilderMany<R>.readable`: receives a set of **Signals** and builds the widget with readable **(R)** property.
+  * `SignalBuilderMany.all`: receives a node and builds the widget using all non-computed **Signals** from it.
+
 ## 1.0.0
 * First stable release.
 * Migrated to material_ui

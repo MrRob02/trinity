@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:material_ui/material_ui.dart';
+import 'package:trinity/signals/base_bridge_signal.dart';
 import 'package:trinity/signals/base_signal.dart';
 import 'package:trinity/signals/signal.dart';
 import 'package:trinity/node_interface.dart';
@@ -18,7 +19,8 @@ import 'package:trinity/node_anatomy.dart';
 ///   BridgeSignal(select: (FormNode node) => node.edad),
 /// );
 /// ```
-class BridgeSignal<N extends NodeInterface, V> extends ProtectedSignal<V> {
+class BridgeSignal<N extends NodeInterface, V> extends ProtectedSignal<V>
+    implements BaseBridgeSignal<V> {
   StreamSubscription<V>? _subscription;
   late final N _parentNode;
 
@@ -31,6 +33,7 @@ class BridgeSignal<N extends NodeInterface, V> extends ProtectedSignal<V> {
   @override
   V get value => _select(_parentNode).value;
 
+  @override
   @protected
   void connect(InheritedTrinityScope scope) {
     final node = _parentNode = scope.findByType<N>();
@@ -71,7 +74,8 @@ class BridgeSignal<N extends NodeInterface, V> extends ProtectedSignal<V> {
 /// );
 /// ```
 class TransformBridgeSignal<N extends NodeInterface, S, V>
-    extends ProtectedSignal<V> {
+    extends ProtectedSignal<V>
+    implements BaseBridgeSignal<V> {
   StreamSubscription<S>? _subscription;
 
   final BaseSignal<S> Function(N node) _select;
@@ -85,6 +89,7 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
        _transform = transform,
        super.deferred();
 
+  @override
   @protected
   void connect(InheritedTrinityScope scope) {
     final node = scope.findByType<N>();

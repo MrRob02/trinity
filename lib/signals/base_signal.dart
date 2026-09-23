@@ -44,4 +44,11 @@ abstract class BaseSignal<T> extends ChangeNotifier {
 
   /// Returns true if this signal has already been disposed.
   bool get isDisposed => controller.isClosed;
+
+  @override
+  @mustCallSuper
+  void dispose() {
+    controller.close();
+    super.dispose();
+  }
 }

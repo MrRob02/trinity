@@ -24,11 +24,6 @@ class SignalBuilder<S> extends StatefulWidget {
     : isListener = false,
       listener = null;
 
-  ///Use `SignalListener` instead.
-  ///
-  ///This is only an internal package constructor.
-  ///You're not supposed to use this constructor directly.
-  @protected
   const SignalBuilder.listener({
     super.key,
     required this.signal,
@@ -98,8 +93,23 @@ class _SignalBuilderState<S> extends State<SignalBuilder<S>> {
 
 class SignalBuilderMany<R> extends StatefulWidget {
   final Set<BaseSignal> signals;
-  final Widget Function(BuildContext context, R readable) builder;
+  final Widget Function(BuildContext context, R readable)? readableBuilder;
+  final Widget Function(BuildContext context)? builder;
   final Function()? listener;
+  const SignalBuilderMany({
+    super.key,
+    required this.signals,
+    required Widget Function(BuildContext context) this.builder,
+    this.listener,
+  }) : readableBuilder = null;
+
+  SignalBuilderMany.all({
+    super.key,
+    required Node node,
+    required Widget Function(BuildContext context) this.builder,
+    this.listener,
+  }) : readableBuilder = null,
+       signals = node.signals.toSet();
 
   ///IMPORTANT!!
   ///
@@ -108,12 +118,13 @@ class SignalBuilderMany<R> extends StatefulWidget {
   ///
   ///This widget was created for cases where you need to listen to many (more than 2) signals.
   ///We strongly recommend you to use [SignalBuilder] instead if you only need to listen to one or two signals.
-  const SignalBuilderMany({
+  const SignalBuilderMany.readable({
     super.key,
     required this.signals,
-    required this.builder,
+    required Widget Function(BuildContext context, R readable) builder,
     this.listener,
-  });
+  }) : readableBuilder = builder,
+       builder = null;
 
   @override
   State<SignalBuilderMany<R>> createState() => _SignalBuilderManyState<R>();
@@ -178,8 +189,14 @@ class _SignalBuilderManyState<R> extends State<SignalBuilderMany<R>> {
       widget.signals.every((s) => s.attachedNode.isSignalRegistered(s)),
       'One or more signals are not registered. Use [registerSignal].',
     );
-
-    return widget.builder(
+    if (widget.builder != null) {
+      return widget.builder!(context);
+    }
+    assert(
+      widget.signals.isNotEmpty,
+      'Signals set cannot be empty in SignalBuilderMany.readable.',
+    );
+    return widget.readableBuilder!(
       context,
       widget.signals.first.attachedNode.readable as R,
     );

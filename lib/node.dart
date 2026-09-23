@@ -67,6 +67,14 @@ abstract class Node {
   final List<_NodeLink> _links = [];
   final List<BaseSignal> _signals = [];
 
+  ///All non-computed signals.
+  List<BaseSignal> get signals =>
+      _signals.whereNotType<BaseComputed>().toList();
+
+  ///All computed signals.
+  List<BaseComputed> get computedSignals =>
+      _signals.whereType<BaseComputed>().toList();
+
   Node({required this.key});
 
   @protected
@@ -101,9 +109,6 @@ abstract class Node {
 
   /// Internal method called by the framework to clean up resources
   void dispose() {
-    for (final bridge in _bridges) {
-      bridge.dispose();
-    }
     for (final signal in _signals) {
       signal.dispose();
     }
@@ -143,4 +148,8 @@ class _NodeLink<N extends NodeInterface> {
   void connect(InheritedTrinityScope scope) {
     value = scope.findByType<N>();
   }
+}
+
+extension _Lists<T> on List<T> {
+  List<T> whereNotType<S>() => where((element) => element is! S).toList();
 }
