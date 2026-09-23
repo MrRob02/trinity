@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:trinity/trinity.dart';
 
 /// Internal base class containing the "raw" state and stream logic.
@@ -36,8 +35,12 @@ abstract class BaseSignal<T> extends ChangeNotifier {
 
   Stream<T> get stream => controller.stream;
 
-  Stream<T> get streamTriggerImmediatly =>
-      _isInitialized ? controller.stream.startWith(_value) : controller.stream;
+  Stream<T> get streamTriggerImmediatly async* {
+    if (_isInitialized) {
+      yield _value;
+    }
+    yield* controller.stream;
+  }
 
   /// Returns true if this signal has already been disposed.
   bool get isDisposed => controller.isClosed;

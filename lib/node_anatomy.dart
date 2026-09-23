@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:trinity/node.dart';
 import 'package:trinity/node_interface.dart';
 // ─────────────────────────────────────────────

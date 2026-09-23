@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:trinity/models/async_value.dart';
 import 'package:trinity/signals/base_signal.dart';
 part 'future_signal.dart';

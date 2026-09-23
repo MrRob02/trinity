@@ -1,3 +1,7 @@
+## 1.0.0
+* First stable release.
+* Migrated to material_ui
+
 ## 0.5.1
 * Improved hot reload support for `ComputedSignal` and `ComputedSignalMany`
 

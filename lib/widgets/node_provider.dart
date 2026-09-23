@@ -2,7 +2,7 @@
 // NodeProvider — registra y desecha un Node
 // ─────────────────────────────────────────────
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
 
