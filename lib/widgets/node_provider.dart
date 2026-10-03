@@ -2,8 +2,7 @@
 // NodeProvider — registra y desecha un Node
 // ─────────────────────────────────────────────
 
-import 'package:flutter/material.dart';
-import 'package:trinity/node_anatomy.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:trinity/trinity.dart';
 
 class NodeProvider<N extends NodeInterface> extends StatefulWidget {
@@ -100,8 +99,7 @@ class NodeProviderState<N extends NodeInterface>
     final resolvedNodes = <N>[];
 
     for (final node in createdNodes) {
-      final key = node.runtimeKey;
-      final existing = _registry!.getByKey(key);
+      final existing = _registry!.getByKey(node.runtimeKey);
 
       if (existing != null && existing is N) {
         // Automáticamente aplicamos reference counting si la misma Key existe.

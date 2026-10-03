@@ -29,8 +29,8 @@ abstract class NodeInterface<R> extends Node {
 
   NodeInterface({super.key});
 
-  static N of<N extends NodeInterface>(BuildContext context) {
-    return context.findNode<N>();
+  static N of<N extends NodeInterface>(BuildContext context, {Key? key}) {
+    return context.findNode<N>(key: key);
   }
 
   Future<T> loading<T>(

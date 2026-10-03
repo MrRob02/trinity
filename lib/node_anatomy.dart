@@ -46,22 +46,43 @@ class NodeRegistry {
   /// Looks up a node by type compatibility (supports interfaces).
   N? getOrNull<N extends Node>({Key? key}) {
     if (key != null) {
-      final exact = getByKey(key);
+      // Direct runtimeKey match if key is already fully resolved runtimeKey
+      final direct = getByKey(key);
+      if (direct is N) return direct;
+
+      // Exact type + key match
+      final runtimeKey = Node.buildRuntimeKey(N, key);
+      final exact = _nodes[runtimeKey];
       if (exact is N) return exact;
+
+      // Subtype match (e.g. find Node implementing interface N with same key)
+      final keyValue = key is ValueKey ? key.value : key;
+      for (final node in _nodes.values) {
+        if (node is N) {
+          if (node.key == key ||
+              (node.key != null && node.key!.value == keyValue)) {
+            return node;
+          }
+        }
+      }
       return null;
     }
     // Exact match first
-    final exact = _nodes[Key(N.toString())];
+    final exact = _nodes[Node.buildRuntimeKey(N)];
     if (exact is N) return exact;
     // Subtype match (e.g. find ProductsNode via CatalogueControllerInterface)
+    for (final node in _nodes.values) {
+      if (node is N && node.key == null) return node;
+    }
     for (final node in _nodes.values) {
       if (node is N) return node;
     }
     return null;
   }
 
-  /// Checks if a node with this exact [runtimeType] already exists.
-  Node? getByRuntimeType(Type type) => _nodes[Key(type.toString())];
+  /// Checks if a node with this exact [runtimeType] and optional [key] exists.
+  Node? getByRuntimeType(Type type, [Key? key]) =>
+      _nodes[Node.buildRuntimeKey(type, key)];
 
   /// Checks if a node with this exact [runtimeKey] already exists.
   Node? getByKey(Key key) => _nodes[key];
@@ -141,8 +162,8 @@ class InheritedTrinityScope extends InheritedWidget {
     );
   }
 
-  N? findByTypeOrNull<N extends NodeInterface>() {
-    return registry.getOrNull<N>();
+  N? findByTypeOrNull<N extends NodeInterface>({Key? key}) {
+    return registry.getOrNull<N>(key: key);
   }
 }
 // ─────────────────────────────────────────────

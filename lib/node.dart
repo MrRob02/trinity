@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:trinity/signals/base_bridge_signal.dart';
 import 'package:trinity/signals/base_signal.dart';
 // import 'package:trinity/models/node_link.dart';
-import 'package:trinity/node_anatomy.dart';
 import 'package:trinity/trinity.dart';
 
 ///The base class for all nodes.
@@ -45,29 +44,55 @@ abstract class Node {
     return true;
   }
 
-  final Key? key;
+  final ValueKey? key;
+
+  /// Generates the internal [Key] used in the registry for a given [type] and optional [key].
+  static Key buildRuntimeKey(Type type, [Key? key]) {
+    if (key == null) return Key(type.toString());
+    if (key is ValueKey) {
+      final value = key.value;
+      final prefix = '$type.';
+      if (value is String && value.startsWith(prefix)) {
+        return key;
+      }
+      return Key('$type.$value');
+    }
+    return Key('$type.$key');
+  }
+
   @protected
   Key get runtimeKey {
-    return key ?? Key(runtimeType.toString());
+    return key != null
+        ? Key('$runtimeType.${key!.value}')
+        : Key(runtimeType.toString());
   }
 
   // API pública para buscar otros Nodes desde dentro del Node
   @protected
-  N findNode<N extends NodeInterface>() {
+  N findNode<N extends NodeInterface>({Key? key}) {
     assert(_initialized, 'No puedes llamar findNode antes de onInit.');
-    return _scope.findByType<N>();
+    return _scope.findByType<N>(key: key);
   }
 
   @protected
-  N? findNodeOrNull<N extends NodeInterface>() {
-    return _scope.findByTypeOrNull<N>();
+  N? findNodeOrNull<N extends NodeInterface>({Key? key}) {
+    if (!_initialized) return null;
+    return _scope.findByTypeOrNull<N>(key: key);
   }
 
   final List<BaseBridgeSignal> _bridges = [];
   final List<_NodeLink> _links = [];
   final List<BaseSignal> _signals = [];
 
-  Node({required this.key});
+  ///All non-computed signals.
+  List<BaseSignal> get signals =>
+      _signals.whereNotType<BaseComputed>().toList();
+
+  ///All computed signals.
+  List<BaseComputed> get computedSignals =>
+      _signals.whereType<BaseComputed>().toList();
+
+  Node({this.key});
 
   @protected
   S registerSignal<S extends BaseSignal>(S signal) {
@@ -138,9 +163,12 @@ abstract class Node {
 /// }
 /// ```
 class _NodeLink<N extends NodeInterface> {
+  final Key? key;
   late final N value;
 
+  _NodeLink({this.key});
+
   void connect(InheritedTrinityScope scope) {
-    value = scope.findByType<N>();
+    value = scope.findByType<N>(key: key);
   }
 }

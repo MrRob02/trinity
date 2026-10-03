@@ -1,3 +1,25 @@
+## 1.1.0
+* `Node` keys are now namespaced by type (`'$runtimeType.${key.value}'`), allowing different node types to share the same `ValueKey`.
+* Propagated `key` parameter support to `findNode`, `findNodeOrNull`, `NodeInterface.of`, `findByTypeOrNull`, `BridgeSignal`, and `TransformBridgeSignal`.
+
+* `Node` class now has a `signals` getter to access to all non-computed signals as ``BaseSignal``.
+
+* `Node` class now has a `computedSignals` getter to access to all computed signals as ``BaseComputed``.
+
+* The new `ManySignalsBuilder` provides three constructors:
+  * `ManySignalsBuilder`: receives a set of signals and builds the widget. No generator needed.
+  * `ManySignalsBuilder.all`: receives a node and builds the widget using all non-computed **Signals** from it. No generator needed.
+  * `ManySignalsBuilder<R>.readable`: receives a set of **Signals** and builds the widget with its generated readable **(R)** property.
+
+**WARNING**
+* Deprecated `SignalListenerMany` in favor of `ManySignalsListener`.
+
+* Deprecated `SignalBuilderMany` in favor of `ManySignalsBuilder.readable`.
+
+## 1.0.0
+* First stable release.
+* Migrated to material_ui
+
 ## 0.5.1
 * Improved hot reload support for `ComputedSignal` and `ComputedSignalMany`
 

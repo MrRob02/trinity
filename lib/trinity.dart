@@ -4,6 +4,7 @@ library;
 export 'trinity_scope.dart';
 export 'node.dart';
 export 'node_interface.dart';
+export 'node_anatomy.dart';
 
 // Models
 export 'signals/signal.dart';

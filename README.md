@@ -1,6 +1,7 @@
 # Trinity
 
 **Signals + Nodes = Simple State Management**
+
 ```dart
 // 1. Define state
 class CounterNode extends NodeInterface {
@@ -33,12 +34,14 @@ Trinity is a robust state management package for Flutter that implements a node-
 ## Quick Start
 
 1. Add to pubspec:
+
 ```yaml
 dependencies:
   trinity: ^0.2.0
 ```
 
 2. Wrap your app:
+
 ```dart
 import 'package:trinity/trinity.dart';
 
@@ -55,13 +58,13 @@ Trinity was born from the necessity to simplify code while ensuring robustness. 
 
 ### The Landscape
 
-| Feature | BLoC | Riverpod | GetX | Trinity |
-|---------|------|----------|------|---------|
-| Global scope | ✅ | ✅ | ✅ | ✅ |
-| Auto dispose | ✅ | ⚠️ | ❌ | ✅ |
-| No magic | ✅ | ✅ | ❌ | ✅ |
-| Cross-node signals | ❌ | ⚠️ | ✅ | ✅ (BridgeSignal) |
-| Learning curve | High | Medium | Low | Low |
+| Feature            | BLoC | Riverpod | GetX | Trinity           |
+| ------------------ | ---- | -------- | ---- | ----------------- |
+| Global scope       | ✅   | ✅       | ✅   | ✅                |
+| Auto dispose       | ✅   | ⚠️     | ❌   | ✅                |
+| No magic           | ✅   | ✅       | ❌   | ✅                |
+| Cross-node signals | ❌   | ⚠️     | ✅   | ✅ (BridgeSignal) |
+| Learning curve     | High | Medium   | Low  | Low               |
 
 - **Bloc**: Celebrated for its robustness and adherence to good practices via the widget tree lifecycle. However, it suffers from excessive boilerplate (requiring repetitive variable definitions for constructors, `Equatable`, getters, and `copyWith`) and lacks native inter-bloc communication.
 - **Riverpod**: A strong middle ground with excellent dependency injection. However, its lifecycle management can be confusing (e.g., balancing caching with auto-dispose), and the architectural separation of data from controllers can complicate flow control.
@@ -121,6 +124,7 @@ class MainApp extends StatelessWidget {
 ```
 
 > **Note**: simpler usage `NodeProvider(create: () => MyNode(), child: ...)`
+>
 > - Use `NodeProvider.builder` to provide a node and a builder at once.
 > - Use `NodeProvider.many` to provide multiple nodes at once.
 > - Use `NodeProvider.reuse` to reuse a node if it already exists in the scope.
@@ -181,7 +185,7 @@ SignalListener(
 For large nodes with many signals, you can use `SignalBuilderMany` with generated readonly wrappers.
 
 > **IMPORTANT**: This feature requires code generation using `build_runner`.
-> 
+>
 > 1. Add `build_runner` and `trinity_generator` to `dev_dependencies`.
 > 2. Add `part 'your_file.readable.dart';` to your node file.
 > 3. Run `dart run build_runner build`.
@@ -213,7 +217,7 @@ SignalBuilderMany<ReadableOrdersNode>(
     // reader is the generated class that exposes values directly
     // This is type-safe and updates only when specific signals change
     final (orders, user) = (reader.orders, reader.user);
-    
+  
     return Text('User: ${user.name}, Orders: ${orders.length}');
   },
 );
@@ -361,10 +365,11 @@ You can see it as a getter that handles its own state on the UI.
 
 ## Problem: Stale Data Between Screens
 
-You tap an order in a list → navigate to detail → edit the price. 
+You tap an order in a list → navigate to detail → edit the price.
 Now you go back. **The list still shows the old price.**
 
 **Solutions people try:**
+
 - Pass the object → It's a copy, changes don't sync back ❌
 - Refetch the list → Wasteful, slow, flickers ❌
 - Use a God Controller → Couples everything together ❌
@@ -443,9 +448,9 @@ class DetailNode extends NodeInterface {
 }
 ```
 
-The ```update``` property is optional, if you don't want your bridges to update the parent node, you can remove it. An ```Exception``` will be thrown if you try to update a signal with ```mySignal.value = newValue``` that doesn't have an ```update``` function.
+The ``update`` property is optional, if you don't want your bridges to update the parent node, you can remove it. An ``Exception`` will be thrown if you try to update a signal with ``mySignal.value = newValue`` that doesn't have an ``update`` function.
 
-You can also use `BridgeSignal` if you don't need to transform the data. ```update``` is allowed by default.
+You can also use `BridgeSignal` if you don't need to transform the data. ``update`` is allowed by default.
 
 ```dart
 late final ordersBridge = registerSignal(
@@ -456,5 +461,6 @@ late final ordersBridge = registerSignal(
 ```
 
 With this setup:
+
 - If `OrdersNode` updates the list (e.g., from a websocket), `DetailNode` updates automatically.
 - If `DetailNode` changes the price, `OrdersNode` receives the update and the list (and any other listeners) update automatically.

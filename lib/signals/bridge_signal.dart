@@ -23,8 +23,9 @@ class BridgeSignal<N extends NodeInterface, V> extends ProtectedSignal<V> {
   late final N _parentNode;
 
   final BaseSignal<V> Function(N node) _select;
+  final Key? key;
 
-  BridgeSignal({required BaseSignal<V> Function(N) select})
+  BridgeSignal({required BaseSignal<V> Function(N) select, this.key})
     : _select = select,
       super.deferred();
 
@@ -33,7 +34,7 @@ class BridgeSignal<N extends NodeInterface, V> extends ProtectedSignal<V> {
 
   @protected
   void connect(InheritedTrinityScope scope) {
-    final node = _parentNode = scope.findByType<N>();
+    final node = _parentNode = scope.findByType<N>(key: key);
     final parentSignal = _select(node);
 
     emit(parentSignal.value);
@@ -76,18 +77,20 @@ class TransformBridgeSignal<N extends NodeInterface, S, V>
 
   final BaseSignal<S> Function(N node) _select;
   final V Function(S value) _transform;
+  final Key? key;
 
   TransformBridgeSignal({
     required BaseSignal<S> Function(N node) select,
     required V Function(S value) transform,
     void Function(N node, V value)? update,
+    this.key,
   }) : _select = select,
        _transform = transform,
        super.deferred();
 
   @protected
   void connect(InheritedTrinityScope scope) {
-    final node = scope.findByType<N>();
+    final node = scope.findByType<N>(key: key);
     final parentSignal = _select(node);
     final initialValue = _transform(parentSignal.value);
 
