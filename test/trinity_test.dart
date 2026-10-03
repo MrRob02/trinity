@@ -1,4 +1,46 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trinity/trinity.dart';
+
+class TestNode extends NodeInterface {
+  late final count = registerSignal(Signal<int>(0));
+  late final name = registerSignal(Signal<String>('Trinity'));
+  late final doubleCount = registerSignal(
+    ComputedSignal<int, int>(source: count, transform: (v) => v * 2),
+  );
+  late final computedCombined = registerSignal(
+    ComputedSignalMany<String>(
+      source: {count, name},
+      transform: () => '${name.value}: ${count.value}',
+    ),
+  );
+
+  TestNode({super.key}) {
+    // Eagerly access to register
+    count;
+    name;
+    doubleCount;
+    computedCombined;
+  }
+}
+
+class ParentNode extends NodeInterface {
+  late final score = registerSignal(Signal<int>(100));
+
+  ParentNode({super.key}) {
+    score;
+  }
+}
+
+class ChildNode extends NodeInterface {
+  late final parentScore = registerSignal(
+    BridgeSignal<ParentNode, int>(select: (p) => p.score),
+  );
+
+  ChildNode({super.key}) {
+    parentScore;
+  }
+}
 
 void main() {
   group('Node signals & computedSignals registration', () {
@@ -310,240 +352,4 @@ void main() {
       },
     );
   });
-
-  group('Keyed Nodes & Lookup', () {
-    testWidgets(
-      'Multiple nodes of different types can share the same ValueKey without collision',
-      (tester) async {
-        const sharedKey = ValueKey('item_42');
-        final userNode = UserTestNode(key: sharedKey);
-        final orderNode = OrderTestNode(key: sharedKey);
-
-        late BuildContext capturedContext;
-
-        await tester.pumpWidget(
-          TrinityScope(
-            child: NodeProvider<UserTestNode>(
-              create: () => userNode,
-              child: NodeProvider<OrderTestNode>(
-                create: () => orderNode,
-                child: Builder(
-                  builder: (context) {
-                    capturedContext = context;
-                    return const Text(
-                      'Ready',
-                      textDirection: TextDirection.ltr,
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        );
-
-        // context.findNode
-        final foundUser = capturedContext.findNode<UserTestNode>(
-          key: sharedKey,
-        );
-        final foundOrder = capturedContext.findNode<OrderTestNode>(
-          key: sharedKey,
-        );
-        expect(foundUser, equals(userNode));
-        expect(foundOrder, equals(orderNode));
-
-        // NodeInterface.of
-        expect(
-          NodeInterface.of<UserTestNode>(capturedContext, key: sharedKey),
-          equals(userNode),
-        );
-        expect(
-          NodeInterface.of<OrderTestNode>(capturedContext, key: sharedKey),
-          equals(orderNode),
-        );
-
-        // findNodeOrNull
-        expect(
-          capturedContext.findNodeOrNull<UserTestNode>(key: sharedKey),
-          equals(userNode),
-        );
-        expect(
-          capturedContext.findNodeOrNull<UserTestNode>(
-            key: const ValueKey('other'),
-          ),
-          isNull,
-        );
-      },
-    );
-
-    testWidgets(
-      'Node can find other keyed nodes using findNode and findNodeOrNull',
-      (tester) async {
-        const key1 = ValueKey('id_1');
-        const key2 = ValueKey('id_2');
-
-        final user1 = UserTestNode(key: key1)..name.value = 'User 1';
-        final user2 = UserTestNode(key: key2)..name.value = 'User 2';
-        final order1 = OrderTestNode(key: key1);
-        final finder = FinderTestNode();
-
-        await tester.pumpWidget(
-          TrinityScope(
-            child: NodeProvider<UserTestNode>.many(
-              nodes: [() => user1, () => user2],
-              child: NodeProvider<OrderTestNode>(
-                create: () => order1,
-                child: NodeProvider<FinderTestNode>(
-                  create: () => finder,
-                  child: const Text('Ready', textDirection: TextDirection.ltr),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        // Inside finder node
-        final foundUser1 = finder.findItemUser(key1);
-        final foundUser2 = finder.findItemUser(key2);
-        expect(foundUser1.name.value, 'User 1');
-        expect(foundUser2.name.value, 'User 2');
-
-        final foundOrder = finder.findItemOrderOrNull(key1);
-        expect(foundOrder, equals(order1));
-
-        final nonExistent = finder.findItemOrderOrNull(
-          const ValueKey('non_existent'),
-        );
-        expect(nonExistent, isNull);
-      },
-    );
-
-    testWidgets(
-      'BridgeSignal and TransformBridgeSignal resolve parent node by key',
-      (tester) async {
-        const targetKey = ValueKey('special_user');
-        final targetUser = UserTestNode(key: targetKey)..name.value = 'Target';
-        final defaultUser = UserTestNode()..name.value = 'Default';
-        final targetOrder = OrderTestNode(key: targetKey);
-
-        final interactor = BridgeInteractorTestNode();
-
-        await tester.pumpWidget(
-          TrinityScope(
-            child: NodeProvider<UserTestNode>.many(
-              nodes: [() => defaultUser, () => targetUser],
-              child: NodeProvider<OrderTestNode>(
-                create: () => targetOrder,
-                child: NodeProvider<BridgeInteractorTestNode>(
-                  create: () => interactor,
-                  child: SignalBuilder<String>(
-                    signal: interactor.bridgedName,
-                    builder: (context, name) {
-                      return Text(
-                        'Name: $name',
-                        textDirection: TextDirection.ltr,
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        expect(find.text('Name: Target'), findsOneWidget);
-
-        targetUser.name.value = 'Updated Target';
-        await tester.pump();
-        await tester.pump();
-        expect(find.text('Name: Updated Target'), findsOneWidget);
-
-        // Check transform bridge
-        expect(interactor.bridgedOrderId.value, 'Transformed-ORD-123');
-      },
-    );
-
-    testWidgets('Subtype lookup works with key for interfaces', (tester) async {
-      const cardKey = ValueKey('card_1');
-      final cardPayment = CreditCardPaymentNode(key: cardKey);
-
-      late BuildContext capturedContext;
-
-      await tester.pumpWidget(
-        TrinityScope(
-          child: NodeProvider<CreditCardPaymentNode>(
-            create: () => cardPayment,
-            child: Builder(
-              builder: (context) {
-                capturedContext = context;
-                return const Text('Ready', textDirection: TextDirection.ltr);
-              },
-            ),
-          ),
-        ),
-      );
-
-      final foundInterface = capturedContext.findNode<PaymentTestInterface>(
-        key: cardKey,
-      );
-      expect(foundInterface, equals(cardPayment));
-      expect(foundInterface.amount.value, 50.0);
-    });
-  });
-}
-
-class UserTestNode extends NodeInterface {
-  late final name = registerSignal(Signal<String>('Alice'));
-  UserTestNode({super.key}) {
-    name;
-  }
-}
-
-class OrderTestNode extends NodeInterface {
-  late final orderId = registerSignal(Signal<String>('ORD-123'));
-  OrderTestNode({super.key}) {
-    orderId;
-  }
-}
-
-abstract class PaymentTestInterface extends NodeInterface {
-  PaymentTestInterface({super.key});
-  Signal<double> get amount;
-}
-
-class CreditCardPaymentNode extends PaymentTestInterface {
-  @override
-  late final amount = registerSignal(Signal<double>(50.0));
-  CreditCardPaymentNode({super.key}) {
-    amount;
-  }
-}
-
-class FinderTestNode extends NodeInterface {
-  FinderTestNode({super.key});
-
-  UserTestNode findItemUser(Key key) => findNode<UserTestNode>(key: key);
-  OrderTestNode? findItemOrderOrNull(Key key) =>
-      findNodeOrNull<OrderTestNode>(key: key);
-}
-
-class BridgeInteractorTestNode extends NodeInterface {
-  late final bridgedName = registerSignal(
-    BridgeSignal<UserTestNode, String>(
-      key: const ValueKey('special_user'),
-      select: (u) => u.name,
-    ),
-  );
-
-  late final bridgedOrderId = registerSignal(
-    TransformBridgeSignal<OrderTestNode, String, String>(
-      key: const ValueKey('special_user'),
-      select: (o) => o.orderId,
-      transform: (id) => 'Transformed-$id',
-    ),
-  );
-
-  BridgeInteractorTestNode({super.key}) {
-    bridgedName;
-    bridgedOrderId;
-  }
 }

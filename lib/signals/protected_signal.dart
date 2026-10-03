@@ -16,7 +16,7 @@ class ProtectedSignal<T> extends BaseSignal<T> {
   @protected
   void emit(T newValue) {
     if (isDisposed) return; // Node was disposed before the async op completed
-    if (unsafeValue == newValue) return; // Small optional optimization
+    if (hasValue && unsafeValue == newValue) return; // Small optional optimization
     unsafeValue = newValue;
     controller.add(newValue);
   }

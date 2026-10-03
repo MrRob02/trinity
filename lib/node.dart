@@ -6,7 +6,7 @@
 
 import 'dart:developer';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:trinity/signals/base_bridge_signal.dart';
 import 'package:trinity/signals/base_signal.dart';
 // import 'package:trinity/models/node_link.dart';
@@ -92,7 +92,7 @@ abstract class Node {
   List<BaseComputed> get computedSignals =>
       _signals.whereType<BaseComputed>().toList();
 
-  Node({this.key});
+  Node({required this.key});
 
   @protected
   S registerSignal<S extends BaseSignal>(S signal) {
@@ -126,9 +126,6 @@ abstract class Node {
 
   /// Internal method called by the framework to clean up resources
   void dispose() {
-    for (final bridge in _bridges) {
-      bridge.dispose();
-    }
     for (final signal in _signals) {
       signal.dispose();
     }
@@ -139,7 +136,7 @@ abstract class Node {
   ///This is the readable version of the node
   ///It is used to access the signals of the node directly by its value.
   ///
-  ///You will use it for the `ManySignalBuilder`
+  ///You will use it for the `ManySignalsBuilder`
   ///
   ///In order to use it you need to generate it with
   ///`build_runner` and the value should be
@@ -171,4 +168,8 @@ class _NodeLink<N extends NodeInterface> {
   void connect(InheritedTrinityScope scope) {
     value = scope.findByType<N>(key: key);
   }
+}
+
+extension _Lists<T> on List<T> {
+  List<T> whereNotType<S>() => where((element) => element is! S).toList();
 }
