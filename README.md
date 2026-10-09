@@ -37,7 +37,7 @@ Trinity is a robust state management package for Flutter that implements a node-
 
 ```yaml
 dependencies:
-  trinity: ^0.2.0
+  trinity: ^1.1.0
 ```
 
 2. Wrap your app:
@@ -63,7 +63,7 @@ Trinity was born from the necessity to simplify code while ensuring robustness. 
 | Global scope       | ✅   | ✅       | ✅   | ✅                |
 | Auto dispose       | ✅   | ⚠️     | ❌   | ✅                |
 | No magic           | ✅   | ✅       | ❌   | ✅                |
-| Cross-node signals | ❌   | ⚠️     | ✅   | ✅ (BridgeSignal) |
+| Cross-node signals | ❌   | ⚠️     | ✅   | ✅  |
 | Learning curve     | High | Medium   | Low  | Low               |
 
 - **Bloc**: Celebrated for its robustness and adherence to good practices via the widget tree lifecycle. However, it suffers from excessive boilerplate (requiring repetitive variable definitions for constructors, `Equatable`, getters, and `copyWith`) and lacks native inter-bloc communication.
