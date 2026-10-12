@@ -23,8 +23,8 @@ import 'package:trinity/signals/nullable_signal.dart';
 ///  })
 ///```
 abstract class NodeInterface<R> extends Node {
-  late final isLoading = registerSignal(Signal<bool>(false));
-  late final fullScreenLoading = registerSignal(Signal<bool>(false));
+  late final isLoading = registerSignal(BoolSignal(false));
+  late final fullScreenLoading = registerSignal(BoolSignal(false));
   late final error = registerSignal(NullableSignal<Object>());
 
   NodeInterface({super.key});

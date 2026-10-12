@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:trinity/node.dart';
 import 'package:trinity/node_interface.dart';
+
 // ─────────────────────────────────────────────
 // _NodeRegistry — registro interno del scope
 // ─────────────────────────────────────────────
@@ -17,12 +18,12 @@ class NodeRegistry {
   void release<N extends Node>(N node) {
     final key = node.runtimeKey;
     if (!_refCounts.containsKey(key)) return;
-    
+
     final current = _refCounts[key]! - 1;
     if (current <= 0) {
       _refCounts.remove(key);
       _nodes.remove(key);
-      node.dispose();
+      node.onDispose();
     } else {
       _refCounts[key] = current;
     }

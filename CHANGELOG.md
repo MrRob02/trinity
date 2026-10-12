@@ -1,3 +1,10 @@
+## 1.2.0
+* Changed `NodeInterface`'s `isLoading` property to use `BoolSignal` directly
+* Changed `NodeInterface`'s `fullScreenLoading` property to use `BoolSignal` directly
+* Fixed `FutureSignal` behavior
+* Added `autoInitialize` property to `FutureSignal`
+* Added `SetSignal` and `NullableSetSignal`
+
 ## 1.1.0
 * `Node` keys are now namespaced by type (`'$runtimeType.${key.value}'`), allowing different node types to share the same `ValueKey`.
 * Propagated `key` parameter support to `findNode`, `findNodeOrNull`, `NodeInterface.of`, `findByTypeOrNull`, `BridgeSignal`, and `TransformBridgeSignal`.

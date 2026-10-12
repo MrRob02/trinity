@@ -25,6 +25,8 @@ import 'package:trinity/trinity.dart';
 abstract class Node {
   late final InheritedTrinityScope _scope; //*
   bool _initialized = false;
+  bool _closed = false;
+  bool get isClosed => _closed;
   // Llamado por NodeProvider al registrar
   ///Returns true if the node was previously initialized, false otherwise
   @protected
@@ -122,14 +124,12 @@ abstract class Node {
   void onReady() {}
 
   /// When the NodeProvider is disposed
-  void onDispose() {}
-
-  /// Internal method called by the framework to clean up resources
-  void dispose() {
+  @mustCallSuper
+  void onDispose() {
     for (final signal in _signals) {
       signal.dispose();
     }
-    onDispose();
+    _closed = true;
     log('$runtimeType and signals disposed');
   }
 

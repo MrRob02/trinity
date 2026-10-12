@@ -1,16 +1,19 @@
 part of 'signal.dart';
 
 class FutureSignal<T> extends ProtectedSignal<AsyncData<T>> {
-  final Future<T> _future;
+  final Future<T> Function() _future;
+  final bool autoInitialize;
 
-  FutureSignal(this._future) : super(AsyncData.initial());
-  // bool get isLoading => value is AsyncLoading;
-  // bool get isError => value is AsyncError;
-  // bool get hasData => value.hasValue;
-  Future<T?> fetch() async {
+  FutureSignal(this._future, {this.autoInitialize = true})
+    : super(AsyncData.initial());
+
+  Future<T?> fetch({bool resetValue = false}) async {
+    if (resetValue) {
+      this.resetValue();
+    }
     _emit(const AsyncLoading());
     try {
-      final data = await _future;
+      final data = await _future();
       _emit(AsyncData(data));
       return data;
     } catch (e, st) {
@@ -23,6 +26,8 @@ class FutureSignal<T> extends ProtectedSignal<AsyncData<T>> {
     value = newValue;
     controller.add(newValue);
   }
+
+  void resetValue() => _emit(AsyncData.initial());
 
   W when<W>({
     required W Function(AsyncData<T> value) builder,

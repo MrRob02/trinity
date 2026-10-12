@@ -78,7 +78,7 @@ void main() {
       expect(countSignal.isDisposed, isFalse);
       expect(doubleSignal.isDisposed, isFalse);
 
-      node.dispose();
+      node.onDispose();
 
       expect(countSignal.isDisposed, isTrue);
       expect(doubleSignal.isDisposed, isTrue);

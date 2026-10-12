@@ -217,9 +217,12 @@ class _ManySignalsBuilderState<R> extends State<ManySignalsBuilder<R>> {
 }
 
 void _initFutures<S>(Set<BaseSignal<S>> signals) {
-  for (var signal in signals) {
+  for (final signal in signals) {
     if (signal is FutureSignal) {
-      (signal as FutureSignal).fetch();
+      final futureSignal = signal as FutureSignal;
+      if (futureSignal.autoInitialize) {
+        futureSignal.fetch();
+      }
     }
   }
 }
