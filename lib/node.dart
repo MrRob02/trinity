@@ -94,6 +94,16 @@ abstract class Node {
   List<BaseComputed> get computedSignals =>
       _signals.whereType<BaseComputed>().toList();
 
+  final List<void Function(BaseSignal signal)> _signalListeners = [];
+
+  void addSignalListener(void Function(BaseSignal signal) listener) {
+    _signalListeners.add(listener);
+  }
+
+  void removeSignalListener(void Function(BaseSignal signal) listener) {
+    _signalListeners.remove(listener);
+  }
+
   Node({required this.key});
 
   @protected
@@ -106,6 +116,9 @@ abstract class Node {
     }
     _signals.add(signal);
     signal.attachedNode = this;
+    for (final listener in List.of(_signalListeners)) {
+      listener(signal);
+    }
     return signal;
   }
 
@@ -129,6 +142,7 @@ abstract class Node {
     for (final signal in _signals) {
       signal.dispose();
     }
+    _signalListeners.clear();
     _closed = true;
     log('$runtimeType and signals disposed');
   }

@@ -42,6 +42,14 @@ class ChildNode extends NodeInterface {
   }
 }
 
+class LazyTestNode extends NodeInterface {
+  late final count = registerSignal(Signal<int>(0));
+  late final name = registerSignal(Signal<String>('Lazy'));
+  late final unread = registerSignal(Signal<String>('InitialUnread'));
+
+  LazyTestNode({super.key});
+}
+
 void main() {
   group('Node signals & computedSignals registration', () {
     test(
@@ -181,6 +189,123 @@ void main() {
         await tester.pump();
         await tester.pump();
         expect(find.text('Trinity-42'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'ManySignalsBuilder.all rebuilds with lazy signals not accessed in constructor',
+      (tester) async {
+        final node = LazyTestNode();
+        expect(node.signals.isEmpty, isTrue);
+
+        int buildCount = 0;
+        await tester.pumpWidget(
+          TrinityScope(
+            child: NodeProvider<LazyTestNode>(
+              create: () => node,
+              child: ManySignalsBuilder.all(
+                node: node,
+                builder: (context) {
+                  buildCount++;
+                  return Text(
+                    '${node.name.value}-${node.count.value}',
+                    textDirection: TextDirection.ltr,
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('Lazy-0'), findsOneWidget);
+        expect(buildCount, 1);
+
+        node.count.value = 42;
+        await tester.pump();
+        await tester.pump();
+        expect(find.text('Lazy-42'), findsOneWidget);
+        expect(buildCount, 2);
+
+        node.name.value = 'Updated';
+        await tester.pump();
+        await tester.pump();
+        expect(find.text('Updated-42'), findsOneWidget);
+        expect(buildCount, 3);
+      },
+    );
+
+    testWidgets(
+      'ManySignalsBuilder.all rebuilds when a signal not initially read in builder is mutated',
+      (tester) async {
+        final node = LazyTestNode();
+        int buildCount = 0;
+
+        await tester.pumpWidget(
+          TrinityScope(
+            child: NodeProvider<LazyTestNode>(
+              create: () => node,
+              child: ManySignalsBuilder.all(
+                node: node,
+                builder: (context) {
+                  buildCount++;
+                  return Text(
+                    'Count: ${node.count.value}',
+                    textDirection: TextDirection.ltr,
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('Count: 0'), findsOneWidget);
+        expect(buildCount, 1);
+
+        // Mutate a signal that was never read in the builder
+        node.unread.value = 'Changed';
+        await tester.pump();
+        await tester.pump();
+        expect(buildCount, 2);
+      },
+    );
+
+    testWidgets(
+      'ManySignalsBuilder.all rebuilds when loading state changes via loading()',
+      (tester) async {
+        final node = LazyTestNode();
+
+        await tester.pumpWidget(
+          TrinityScope(
+            child: NodeProvider<LazyTestNode>(
+              create: () => node,
+              child: ManySignalsBuilder.all(
+                node: node,
+                builder: (context) {
+                  return Text(
+                    'Loading: ${node.isLoading.value}',
+                    textDirection: TextDirection.ltr,
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('Loading: false'), findsOneWidget);
+
+        final future = node.loading(() async {
+          await Future.delayed(const Duration(milliseconds: 50));
+          return true;
+        });
+
+        await tester.pump();
+        await tester.pump();
+        expect(find.text('Loading: true'), findsOneWidget);
+
+        await tester.pump(const Duration(milliseconds: 60));
+        await tester.pump();
+        expect(find.text('Loading: false'), findsOneWidget);
+        await future;
       },
     );
 

@@ -45,7 +45,8 @@ mixin ListSignalOperationsMixin<T> on ListMixin<T> {
   void add(T element) => _emitList([..._internalList, element]);
 
   @override
-  void addAll(Iterable<T> iterable) => _emitList([..._internalList, ...iterable]);
+  void addAll(Iterable<T> iterable) =>
+      _emitList([..._internalList, ...iterable]);
 
   @override
   void clear() => _emitList([]);

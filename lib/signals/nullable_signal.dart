@@ -8,4 +8,6 @@ class NullableSignal<T> extends Signal<T?> {
     if (value == null) return null;
     return builder(value as T);
   }
+
+  void clear() => value = null;
 }

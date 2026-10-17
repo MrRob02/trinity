@@ -1,3 +1,7 @@
+## 1.2.1
+* Added clear() to `NullableSignal`
+* Fix issue with ManySignalsBuilder.all not working
+
 ## 1.2.0
 * Changed `NodeInterface`'s `isLoading` property to use `BoolSignal` directly
 * Changed `NodeInterface`'s `fullScreenLoading` property to use `BoolSignal` directly

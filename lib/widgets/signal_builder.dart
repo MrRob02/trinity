@@ -92,10 +92,14 @@ class _SignalBuilderState<S> extends State<SignalBuilder<S>> {
 }
 
 class ManySignalsBuilder<R> extends StatefulWidget {
-  final Set<BaseSignal> signals;
+  final Set<BaseSignal>? _explicitSignals;
+  final Node? node;
   final Widget Function(BuildContext context, R readable)? readableBuilder;
   final Widget Function(BuildContext context)? builder;
   final Function()? listener;
+
+  Set<BaseSignal> get signals =>
+      _explicitSignals ?? (node != null ? node!.signals.toSet() : const {});
 
   ///Creates a `ManySignalsBuilder` for a given set of signals.
   ///Use this constructor when you need to listen to a specific subset of signals
@@ -107,22 +111,24 @@ class ManySignalsBuilder<R> extends StatefulWidget {
   ///use `ManySignalsBuilder.readable`.
   const ManySignalsBuilder({
     super.key,
-    required this.signals,
+    required Set<BaseSignal> signals,
     required Widget Function(BuildContext context) this.builder,
     this.listener,
-  }) : readableBuilder = null;
+  }) : _explicitSignals = signals,
+       node = null,
+       readableBuilder = null;
 
   ///Creates a `ManySignalsBuilder` for all the signals in a node.
   ///
   ///You can also use `ManySignalsBuilder.readable` to create a `ManySignalsBuilder` for a node
   ///that provides access to all signals in the node through the readable.
-  ManySignalsBuilder.all({
+  const ManySignalsBuilder.all({
     super.key,
-    required Node node,
+    required this.node,
     required Widget Function(BuildContext context) this.builder,
     this.listener,
-  }) : readableBuilder = null,
-       signals = node.signals.toSet();
+  }) : _explicitSignals = null,
+       readableBuilder = null;
 
   ///IMPORTANT!!
   ///
@@ -133,10 +139,12 @@ class ManySignalsBuilder<R> extends StatefulWidget {
   ///We strongly recommend you to use `SignalBuilder` instead if you only need to listen to one or two signals.
   const ManySignalsBuilder.readable({
     super.key,
-    required this.signals,
+    required Set<BaseSignal> signals,
     required Widget Function(BuildContext context, R readable) builder,
     this.listener,
-  }) : readableBuilder = builder,
+  }) : _explicitSignals = signals,
+       node = null,
+       readableBuilder = builder,
        builder = null;
 
   @override
@@ -144,7 +152,7 @@ class ManySignalsBuilder<R> extends StatefulWidget {
 }
 
 class _ManySignalsBuilderState<R> extends State<ManySignalsBuilder<R>> {
-  List<StreamSubscription> _subscriptions = [];
+  final Map<BaseSignal, StreamSubscription> _subscriptions = {};
   bool _initialized = false;
 
   @override
@@ -162,25 +170,49 @@ class _ManySignalsBuilderState<R> extends State<ManySignalsBuilder<R>> {
   @override
   void didUpdateWidget(covariant ManySignalsBuilder<R> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _subscribe();
+    if (oldWidget.node != widget.node ||
+        oldWidget._explicitSignals != widget._explicitSignals) {
+      _cancelSubscriptions();
+      _subscribe();
+    }
+  }
+
+  void _onSignalRegistered(BaseSignal signal) {
+    if (signal is! BaseComputed) {
+      _subscribeToSignal(signal);
+      if (signal is FutureSignal && signal.autoInitialize) {
+        signal.fetch();
+      }
+    }
+  }
+
+  void _subscribeToSignal(BaseSignal s) {
+    if (_subscriptions.containsKey(s)) return;
+    _subscriptions[s] = s.stream.listen((_) {
+      if (mounted) {
+        setState(() {});
+        widget.listener?.call();
+      }
+    });
   }
 
   void _subscribe() {
     _cancelSubscriptions();
-    _subscriptions = widget.signals
-        .map(
-          (s) => s.stream.listen((_) {
-            if (mounted) {
-              setState(() {});
-              widget.listener?.call();
-            }
-          }),
-        )
-        .toList();
+    if (widget.node != null) {
+      widget.node!.addSignalListener(_onSignalRegistered);
+      for (final signal in widget.node!.signals) {
+        _subscribeToSignal(signal);
+      }
+    } else {
+      for (final signal in widget.signals) {
+        _subscribeToSignal(signal);
+      }
+    }
   }
 
   void _cancelSubscriptions() {
-    for (final subscription in _subscriptions) {
+    widget.node?.removeSignalListener(_onSignalRegistered);
+    for (final subscription in _subscriptions.values) {
       subscription.cancel();
     }
     _subscriptions.clear();
@@ -194,14 +226,21 @@ class _ManySignalsBuilderState<R> extends State<ManySignalsBuilder<R>> {
 
   @override
   Widget build(BuildContext context) {
-    assert(
-      widget.signals.every((s) => s.attachedNode.initialized),
-      'One or more nodes are not initialized. Use [NodeProvider] to provide the node to the scope.',
-    );
-    assert(
-      widget.signals.every((s) => s.attachedNode.isSignalRegistered(s)),
-      'One or more signals are not registered. Use [registerSignal].',
-    );
+    if (widget.node != null) {
+      assert(
+        widget.node!.initialized,
+        'The node ${widget.node.runtimeType} is not initialized. Use [NodeProvider] to provide the node to the scope.',
+      );
+    } else {
+      assert(
+        widget.signals.every((s) => s.attachedNode.initialized),
+        'One or more nodes are not initialized. Use [NodeProvider] to provide the node to the scope.',
+      );
+      assert(
+        widget.signals.every((s) => s.attachedNode.isSignalRegistered(s)),
+        'One or more signals are not registered. Use [registerSignal].',
+      );
+    }
     if (widget.builder != null) {
       return widget.builder!(context);
     }
